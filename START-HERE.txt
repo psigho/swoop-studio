@@ -1,0 +1,27 @@
+SWOOP STUDIO 0.2.5
+
+INSTALL
+Download the Windows x64 installer from:
+https://github.com/psigho/swoop-studio/releases/latest
+
+Run Setup, then open Swoop Studio from the Start menu or Desktop shortcut.
+Windows 10/11 on an Intel/AMD 64-bit PC is required. The installer is unsigned.
+Node.js, npm and a separate FFmpeg installation are not needed.
+
+TRY IT
+Play the editable playground, or choose Help > Watch included demo.
+Record opens the Windows screen/window picker. Import video opens your own clip.
+Use Cursor for shapes, trails, click effects and drag effects; Motion for zooms.
+
+KEEP YOUR WORK
+Recordings are backed up to disk while capture runs. Use Recordings to reopen a
+take or show its folder. Completed takes include cursor data. Interrupted takes
+may have a missing ending or cursor track. Backups never expire automatically.
+Save project keeps the source video and your edit in a .swoop file.
+Export creates the finished WebM or MP4 video. Leave the app open until it ends.
+
+FROM A SOURCE CHECKOUT
+START-STUDIO.cmd opens the current locally built app when available.
+Development and supported scope: README.md
+Installer details: INSTALLER.md
+Release changes: CHANGELOG.md

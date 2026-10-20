@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "version": "6.1.6-swoop-x264",
+  "platform": "win32",
+  "arch": "x64",
+  "license": "GPL-3.0-or-later",
+  "binary": {
+    "path": "win32-x64/ffmpeg.exe",
+    "sha256": "48f88ce7a58f4e2601b6c49b08a370d40c8381180bf2dbc0650863d2a5eaabc5"
+  },
+  "sources": [
+    {
+      "path": "source/ffmpeg-6.1.6.tar.xz",
+      "sha256": "d4fcb164028dd3beee5d92c0ac72e46aac6973c75ea12dc14de07bf8f407370a"
+    },
+    {
+      "path": "source/x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.tar.gz",
+      "sha256": "cd71a7515b0e9a012e1ac9b1f8415bebcaf6fc97d4db32286642ac4c0fbe24f9"
+    }
+  ],
+  "recipe": {
+    "path": "build.sh",
+    "sha256": "bb412a83b900c854c5b0a660af91b9e0c745cd5a247775fdfb0d21b193f6d0db"
+  },
+  "licenseFiles": [
+    {
+      "path": "licenses/FFmpeg-GPL-3.0.txt",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/GCC-GPL-3.0.txt",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "licenses/GCC-RUNTIME-EXCEPTION-3.1.txt",
+      "sha256": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+    },
+    {
+      "path": "licenses/MinGW-w64-COPYING.txt",
+      "sha256": "99a69660981156c21336fdb5661f89341b013c94e4bf9e1c7467b4745718397f"
+    },
+    {
+      "path": "licenses/MinGW-w64-runtime.txt",
+      "sha256": "1db8da07b436c68833c0673ffee3d9fcb2526047f3820b81661865dfedc79a1f"
+    },
+    {
+      "path": "licenses/MinGW-w64.txt",
+      "sha256": "f38e6194bd3bfa1b654f118e5acefe0aead437bbe669eee43957ccc65a7127f1"
+    },
+    {
+      "path": "licenses/x264-GPL-2.0-or-later.txt",
+      "sha256": "32b1062f7da84967e7019d01ab805935caa7ab7321a7ced0e30ebe75e5df1670"
+    }
+  ],
+  "metadataFiles": [
+    {
+      "path": "metadata/binary-sha256.txt",
+      "sha256": "3c1d295b0e20c221f105f953ea38f979d26925df8af0a6f44a6e21b28f62f79f"
+    },
+    {
+      "path": "metadata/buildconf.txt",
+      "sha256": "e59d8546d0341d5e0ba2cdc922e900ec6fa86faf68daba3780cb0a58d93e388a"
+    },
+    {
+      "path": "metadata/compiler.txt",
+      "sha256": "6688c8e45685cc4d4ab4a0cdf37d2479e9e08f6bbd316841dcd50aba7572ed45"
+    },
+    {
+      "path": "metadata/ffmpeg-config.h",
+      "sha256": "6097136f8514e34dcbe13a928565ec971d8414547aac34b398bfb5b34cf396f8"
+    },
+    {
+      "path": "metadata/ffmpeg-config.mak",
+      "sha256": "03c82d82bac1e401f0d5a0282ee02482ce7ffc27aa7d5f95d3af3394da5b7209"
+    },
+    {
+      "path": "metadata/ffmpeg-signature-verification.txt",
+      "sha256": "7cd0905c1111f9e5000fda99772baa10b4364104274c91d8db86b5019f3900de"
+    },
+    {
+      "path": "metadata/format-verification.json",
+      "sha256": "32ab51725fb17cbfc3499615e7aec265a1e833159926f2f28b01def94bae9c97"
+    },
+    {
+      "path": "metadata/imports.txt",
+      "sha256": "c75e5343d83263bb47a92c1538bfde629439b0745ee39b6874443fab34a347be"
+    },
+    {
+      "path": "metadata/toolchain-packages.txt",
+      "sha256": "4e227fe1c98b81a3eb158533d10e1fe270390cc662058eb018a344f771d8aea7"
+    },
+    {
+      "path": "metadata/version.txt",
+      "sha256": "2e4dc336fc50e38fc0571d1cd0c2bd9b05a6141a416791438b0178bb1c77cb35"
+    },
+    {
+      "path": "metadata/x264-config.mak",
+      "sha256": "bc1f23fbf3b3009cbbb9d0017d80d2ac453abb695e082b2e1df8a277da84290b"
+    }
+  ],
+  "additionalSourceFiles": [
+    {
+      "path": "source/ffmpeg-6.1.6.tar.xz.asc",
+      "sha256": "d723aad27d00de29dc98a8718002c05cb4293eb2f6240baac70cf066a5607b88"
+    },
+    {
+      "path": "source/ffmpeg-release-key.asc",
+      "sha256": "397b3becedcd5a98769967ff1ff8501ddc89f8368b8f766e4701377d7dbaabe5"
+    }
+  ],
+  "notice": {
+    "path": "SOURCE.md",
+    "sha256": "09c8a089e0945730c97d25759d13c3babc9a3918bdf7869428ecc2ded89c02a7"
+  },
+  "ffmpeg": {
+    "version": "6.1.6",
+    "source": "https://ffmpeg.org/releases/ffmpeg-6.1.6.tar.xz",
+    "releaseKeyFingerprint": "FCF986EA15E6E293A5644F10B4322F04D67658D8",
+    "modified": false
+  },
+  "externalLibraries": [
+    {
+      "name": "x264",
+      "revision": "b35605ace3ddf7c1a5d67a2eb553f034aef41d55",
+      "source": "https://code.videolan.org/videolan/x264",
+      "modified": false
+    }
+  ],
+  "compiler": {
+    "name": "MSYS2 UCRT64 GCC",
+    "version": "16.2.0-6",
+    "runtime": "static libgcc with GCC Runtime Library Exception 3.1; MinGW-w64 CRT"
+  },
+  "reproducesByteIdentically": false
+}

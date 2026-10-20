@@ -1,0 +1,55 @@
+{
+  "name": "swoop-studio",
+  "version": "0.2.5",
+  "private": true,
+  "description": "A local screen recording studio with expressive cursors and cinematic motion.",
+  "main": "electron/main.cjs",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 9347 --strictPort",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 9347 --strictPort",
+    "desktop": "electron .",
+    "test": "tsx --test tests/*.test.ts && node --test electron/main.test.cjs electron/pointer-session.test.cjs electron/dependency-check.test.cjs electron/take-store.test.cjs",
+    "package": "npm run build && node scripts/build-installer.mjs --dir",
+    "test:desktop": "node scripts/native-e2e.mjs",
+    "installer": "npm run build && node scripts/build-installer.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.2.8",
+    "lucide-react": "^1.57.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "optionalDependencies": {
+    "uiohook-napi": "^1.5.5"
+  },
+  "overrides": {
+    "@electron/get": {
+      "global-agent": "4.1.3"
+    }
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "44.7.2",
+    "electron-builder": "26.15.3",
+    "prettier": "^3.9.10",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/psigho/swoop-studio.git"
+  },
+  "homepage": "https://github.com/psigho/swoop-studio#readme",
+  "bugs": {
+    "url": "https://github.com/psigho/swoop-studio/issues"
+  },
+  "license": "MIT"
+}

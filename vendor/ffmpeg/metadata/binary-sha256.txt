@@ -1,0 +1,1 @@
+48f88ce7a58f4e2601b6c49b08a370d40c8381180bf2dbc0650863d2a5eaabc5 */k/_tools/swoop-encoder-build-0.2.5/bin/ffmpeg.exe

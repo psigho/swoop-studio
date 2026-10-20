@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <title>Swoop Cursor Field Test</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      cursor: none !important;
+      user-select: none;
+    }
+    body {
+      margin: 0;
+      font:
+        16px "Segoe UI",
+        sans-serif;
+      background: #f4f6f2;
+      color: #24302c;
+      overflow: hidden;
+    }
+    header {
+      height: 72px;
+      background: #171918;
+      color: #f4f6f2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+    }
+    header b {
+      font-size: 23px;
+      letter-spacing: -1px;
+    }
+    header span {
+      color: #a4dacb;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+    }
+    main {
+      padding: 30px 40px;
+    }
+    h1 {
+      font-size: 30px;
+      letter-spacing: -1px;
+      margin: 0 0 7px;
+    }
+    p {
+      color: #65736b;
+      margin: 0;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status {
+      font-size: 14px;
+      background: #e4ebe5;
+      padding: 12px 18px;
+      border-radius: 8px;
+      min-width: 240px;
+    }
+    .targets {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      height: 188px;
+      border-bottom: 1px solid #d7e0d8;
+    }
+    .target {
+      border: 0;
+      background: #ff834d;
+      color: #19211c;
+      width: 104px;
+      height: 104px;
+      border-radius: 52px;
+      font-size: 32px;
+      font-weight: 650;
+      transition:
+        background 0.14s,
+        transform 0.14s;
+    }
+    .target.hit {
+      background: #a4dacb;
+      transform: scale(0.96);
+    }
+    .route {
+      height: 2px;
+      background: #d8e0d7;
+      width: 150px;
+    }
+    .drag-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      padding: 22px 0 14px;
+    }
+    .drag-area {
+      height: 228px;
+      border: 1px solid #d7e0d8;
+      border-radius: 12px;
+      position: relative;
+      background: #edf1eb;
+      touch-action: none;
+    }
+    .lane {
+      position: absolute;
+      right: 30px;
+      top: 25px;
+      bottom: 25px;
+      width: 310px;
+      border: 2px dashed #9db7aa;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6a8275;
+      font-size: 18px;
+    }
+    .card {
+      position: absolute;
+      left: 34px;
+      top: 36px;
+      width: 210px;
+      height: 66px;
+      padding: 18px 20px;
+      border: 1px solid #8cb9a8;
+      background: #a4dacb;
+      border-radius: 8px;
+      box-shadow: 0 5px 10px #20382e0a;
+      touch-action: none;
+      font-weight: 600;
+      z-index: 1;
+    }
+    .card span {
+      float: right;
+      color: #436b5b;
+    }
+    .card.second {
+      top: 125px;
+      background: #c1dccf;
+    }
+    .card.held {
+      box-shadow: 0 12px 22px #20382e2a;
+    }
+    footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 22px 0;
+      color: #6b786f;
+      font-size: 13px;
+    }
+    .tag {
+      color: #3f6956;
+    }
+  </style>
+  <header>
+    <b>Swoop / Cursor field test</b><span>FRESH RECORDING · 0.2</span>
+  </header>
+  <main>
+    <div class="top">
+      <div>
+        <h1>A little movement. A lot more feeling.</h1>
+        <p>Three taps. Two drags. One fresh take.</p>
+      </div>
+      <div class="status" id="status">Ready for the first tap</div>
+    </div>
+    <section class="targets">
+      <button class="target" aria-label="Target one">01</button
+      ><i class="route"></i
+      ><button class="target" aria-label="Target two">02</button
+      ><i class="route"></i
+      ><button class="target" aria-label="Target three">03</button>
+    </section>
+    <div class="drag-label">
+      <b>Hold a card. Bring it across.</b
+      ><span id="drag-count">0 cards delivered</span>
+    </div>
+    <section class="drag-area">
+      <div class="lane">Drop zone</div>
+      <div class="card" tabindex="0">The first move <span>↗</span></div>
+      <div class="card second" tabindex="0">And one more <span>↗</span></div>
+    </section>
+    <footer>
+      <span>Presenter · Ribbon · Burst · Elastic</span
+      ><span class="tag">Everything you see is recorded locally.</span>
+    </footer>
+  </main>
+  <script>
+    window.fieldTestEvents = [];
+    const status = document.getElementById("status");
+    let hits = 0,
+      delivered = 0;
+    document.querySelectorAll(".target").forEach((button, i) =>
+      button.addEventListener("click", () => {
+        button.classList.add("hit");
+        hits++;
+        status.textContent = `Tap ${i + 1} registered · ${hits} clicks`;
+        window.fieldTestEvents.push({
+          type: "click",
+          target: i + 1,
+          at: performance.now(),
+        });
+      }),
+    );
+    document.querySelectorAll(".card").forEach((card, i) => {
+      let held = null;
+      card.addEventListener("pointerdown", (e) => {
+        held = {
+          x: e.clientX,
+          y: e.clientY,
+          left: card.offsetLeft,
+          top: card.offsetTop,
+        };
+        card.setPointerCapture(e.pointerId);
+        card.classList.add("held");
+        status.textContent = `Holding card ${i + 1}`;
+        window.fieldTestEvents.push({
+          type: "dragstart",
+          card: i + 1,
+          at: performance.now(),
+        });
+      });
+      card.addEventListener("pointermove", (e) => {
+        if (!held) return;
+        card.style.left =
+          Math.max(8, Math.min(958, held.left + e.clientX - held.x)) + "px";
+        card.style.top =
+          Math.max(8, Math.min(152, held.top + e.clientY - held.y)) + "px";
+      });
+      const finish = (e) => {
+        if (!held) return;
+        held = null;
+        card.classList.remove("held");
+        delivered++;
+        status.textContent = `Card ${i + 1} delivered`;
+        document.getElementById("drag-count").textContent =
+          `${delivered} cards delivered`;
+        window.fieldTestEvents.push({
+          type: "dragend",
+          card: i + 1,
+          at: performance.now(),
+        });
+      };
+      card.addEventListener("pointerup", finish);
+      card.addEventListener("pointercancel", finish);
+      card.addEventListener("lostpointercapture", finish);
+    });
+  </script>
+</html>

@@ -1,0 +1,325 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T22:32:42.998208+00:00",
+  "title": "Design System: Swoop Studio",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Tangerine",
+        "tonalRamp": [
+          "oklch(15.00% 0.16581 43.01)",
+          "oklch(26.43% 0.16581 43.01)",
+          "oklch(37.86% 0.16581 43.01)",
+          "oklch(49.29% 0.16581 43.01)",
+          "oklch(60.71% 0.16581 43.01)",
+          "oklch(72.14% 0.16581 43.01)",
+          "oklch(83.57% 0.16581 43.01)",
+          "oklch(95.00% 0.16581 43.01)"
+        ]
+      },
+      "accent-ink": {
+        "role": "primary",
+        "displayName": "Warm ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.02450 54.73)",
+          "oklch(26.43% 0.02450 54.73)",
+          "oklch(37.86% 0.02450 54.73)",
+          "oklch(49.29% 0.02450 54.73)",
+          "oklch(60.71% 0.02450 54.73)",
+          "oklch(72.14% 0.02450 54.73)",
+          "oklch(83.57% 0.02450 54.73)",
+          "oklch(95.00% 0.02450 54.73)"
+        ]
+      },
+      "shell": {
+        "role": "neutral",
+        "displayName": "Graphite shell",
+        "tonalRamp": [
+          "oklch(15.00% 0.00364 164.68)",
+          "oklch(26.43% 0.00364 164.68)",
+          "oklch(37.86% 0.00364 164.68)",
+          "oklch(49.29% 0.00364 164.68)",
+          "oklch(60.71% 0.00364 164.68)",
+          "oklch(72.14% 0.00364 164.68)",
+          "oklch(83.57% 0.00364 164.68)",
+          "oklch(95.00% 0.00364 164.68)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel graphite",
+        "tonalRamp": [
+          "oklch(15.00% 0.00709 145.36)",
+          "oklch(26.43% 0.00709 145.36)",
+          "oklch(37.86% 0.00709 145.36)",
+          "oklch(49.29% 0.00709 145.36)",
+          "oklch(60.71% 0.00709 145.36)",
+          "oklch(72.14% 0.00709 145.36)",
+          "oklch(83.57% 0.00709 145.36)",
+          "oklch(95.00% 0.00709 145.36)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised graphite",
+        "tonalRamp": [
+          "oklch(15.00% 0.01056 139.44)",
+          "oklch(26.43% 0.01056 139.44)",
+          "oklch(37.86% 0.01056 139.44)",
+          "oklch(49.29% 0.01056 139.44)",
+          "oklch(60.71% 0.01056 139.44)",
+          "oklch(72.14% 0.01056 139.44)",
+          "oklch(83.57% 0.01056 139.44)",
+          "oklch(95.00% 0.01056 139.44)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Moss-grey rule",
+        "tonalRamp": [
+          "oklch(15.00% 0.01581 137.84)",
+          "oklch(26.43% 0.01581 137.84)",
+          "oklch(37.86% 0.01581 137.84)",
+          "oklch(49.29% 0.01581 137.84)",
+          "oklch(60.71% 0.01581 137.84)",
+          "oklch(72.14% 0.01581 137.84)",
+          "oklch(83.57% 0.01581 137.84)",
+          "oklch(95.00% 0.01581 137.84)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Chalk text",
+        "tonalRamp": [
+          "oklch(15.00% 0.01077 118.02)",
+          "oklch(26.43% 0.01077 118.02)",
+          "oklch(37.86% 0.01077 118.02)",
+          "oklch(49.29% 0.01077 118.02)",
+          "oklch(60.71% 0.01077 118.02)",
+          "oklch(72.14% 0.01077 118.02)",
+          "oklch(83.57% 0.01077 118.02)",
+          "oklch(95.00% 0.01077 118.02)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Sage-grey support",
+        "tonalRamp": [
+          "oklch(15.00% 0.01737 133.86)",
+          "oklch(26.43% 0.01737 133.86)",
+          "oklch(37.86% 0.01737 133.86)",
+          "oklch(49.29% 0.01737 133.86)",
+          "oklch(60.71% 0.01737 133.86)",
+          "oklch(72.14% 0.01737 133.86)",
+          "oklch(83.57% 0.01737 133.86)",
+          "oklch(95.00% 0.01737 133.86)"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Deep field",
+        "tonalRamp": [
+          "oklch(15.00% 0.02116 133.19)",
+          "oklch(26.43% 0.02116 133.19)",
+          "oklch(37.86% 0.02116 133.19)",
+          "oklch(49.29% 0.02116 133.19)",
+          "oklch(60.71% 0.02116 133.19)",
+          "oklch(72.14% 0.02116 133.19)",
+          "oklch(83.57% 0.02116 133.19)",
+          "oklch(95.00% 0.02116 133.19)"
+        ]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Peach focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.11124 48.64)",
+          "oklch(26.43% 0.11124 48.64)",
+          "oklch(37.86% 0.11124 48.64)",
+          "oklch(49.29% 0.11124 48.64)",
+          "oklch(60.71% 0.11124 48.64)",
+          "oklch(72.14% 0.11124 48.64)",
+          "oklch(83.57% 0.11124 48.64)",
+          "oklch(95.00% 0.11124 48.64)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Interface body",
+        "purpose": "Compact operational content."
+      },
+      "title": {
+        "displayName": "Panel title",
+        "purpose": "Library and panel headings."
+      },
+      "section": {
+        "displayName": "Control section",
+        "purpose": "Inspector sections."
+      },
+      "label": {
+        "displayName": "Functional label",
+        "purpose": "The final readable control label size."
+      },
+      "time": {
+        "displayName": "Timecode",
+        "purpose": "Use tabular numerals."
+      },
+      "modal": {
+        "displayName": "Dialog heading",
+        "purpose": "Focused recording, export and help dialogs."
+      }
+    },
+    "shadows": [
+      {
+        "name": "primary-action",
+        "value": "0 2px 4px #0002",
+        "purpose": "Slight button depth."
+      },
+      {
+        "name": "stage-media",
+        "value": "drop-shadow(0 12px 26px #0004)",
+        "purpose": "The CSS filter on fitted preview media."
+      },
+      {
+        "name": "dialog",
+        "value": "0 24px 80px #0008",
+        "purpose": "Focused dialog elevation."
+      },
+      {
+        "name": "notification",
+        "value": "0 8px 24px #0006",
+        "purpose": "Transient notifications."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-state",
+        "value": "140ms",
+        "purpose": "Background, text and border state."
+      },
+      {
+        "name": "toast-enter",
+        "value": "200ms ease-out",
+        "purpose": "Short outcome feedback."
+      },
+      {
+        "name": "dialog-enter",
+        "value": "180ms ease-out",
+        "purpose": "Short focused-dialog arrival."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "Collapse interface animation and transition duration."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-workspace-min",
+        "value": "1550px"
+      },
+      {
+        "name": "collapse-library-max",
+        "value": "1190px"
+      },
+      {
+        "name": "short-workspace-max-height",
+        "value": "760px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Header primary action",
+      "kind": "button",
+      "refersTo": "button-header-primary",
+      "description": "The 44px decisive header action.",
+      "html": "<button class=\"ds-primary\">Export</button>",
+      "css": ".ds-primary{font-family:'Manrope Variable','Segoe UI',sans-serif;font-size:11px;cursor:pointer;transition:background .14s,color .14s,border-color .14s;height:44px;padding:0 13px;border:1px solid transparent;border-radius:7px;background:var(--accent,#ff834d);color:var(--ink,#23170f);font-weight:650;box-shadow:0 2px 4px #0002}.ds-primary:hover{background:#ff9a6c}.ds-primary:focus-visible{outline:2px solid var(--focus,#ffae83);outline-offset:3px;}.ds-primary:active{transform:translateY(.5px)}.ds-primary:disabled{opacity:.38;cursor:not-allowed}"
+    },
+    {
+      "name": "Subtle action",
+      "kind": "button",
+      "refersTo": "button-subtle",
+      "description": "A quiet secondary workflow action.",
+      "html": "<button class=\"ds-subtle\">Import video</button>",
+      "css": ".ds-subtle{font-family:'Manrope Variable','Segoe UI',sans-serif;font-size:11px;cursor:pointer;transition:background .14s,color .14s,border-color .14s;height:36px;padding:0 13px;border:1px solid #42483d;border-radius:7px;background:#2b302a;color:#e5e9df;font-weight:650}.ds-subtle:hover{background:#383f35}.ds-subtle:focus-visible{outline:2px solid var(--focus,#ffae83);outline-offset:3px;}.ds-subtle:active{transform:translateY(.5px)}"
+    },
+    {
+      "name": "Record action",
+      "kind": "button",
+      "description": "Warm surface carries an explicit recording action.",
+      "html": "<button class=\"ds-record\">Record</button>",
+      "css": ".ds-record{font-family:'Manrope Variable','Segoe UI',sans-serif;font-size:11px;cursor:pointer;transition:background .14s,color .14s,border-color .14s;height:44px;padding:0 13px;border:1px solid #4a3a2e;border-radius:7px;background:#30271f;color:#ffc4a7;font-weight:650}.ds-record:hover{background:#443127}.ds-record:focus-visible{outline:2px solid var(--focus,#ffae83);outline-offset:3px;}.ds-record:active{transform:translateY(.5px)}"
+    },
+    {
+      "name": "Zoom timing field",
+      "kind": "input",
+      "refersTo": "number-field",
+      "description": "Numeric timing uses a quiet dark field and tabular figures.",
+      "html": "<label class=\"ds-field\">Start<input aria-label=\"Zoom start\" type=\"number\" value=\"2.4\" step=\"0.1\"></label>",
+      "css": ".ds-field{font-family:inherit;color:#b8c5ac;font-size:11px;display:block;max-width:140px}.ds-field input{display:block;box-sizing:border-box;width:100%;border:1px solid #46523b;border-radius:5px;padding:7px;background:#141a10;color:var(--text,#f3f5ed);margin-top:7px;font-family:inherit;font-variant-numeric:tabular-nums;font-size:10px}.ds-field input:focus-visible{outline:2px solid var(--focus,#ffae83);outline-offset:3px;}"
+    },
+    {
+      "name": "Rail navigation labels",
+      "kind": "nav",
+      "description": "The selected label portion of the compact left tool rail. Lucide icons accompany these labels in the app.",
+      "html": "<nav class=\"ds-rail\" aria-label=\"Studio tools\"><button class=\"ds-selected\" aria-current=\"page\">Looks</button><button>Frame</button><button>Cursor</button><button>Motion</button></nav>",
+      "css": ".ds-rail{background:#1a1d19;border-right:1px solid var(--border,#373d35);padding:15px 6px;display:flex;flex-direction:column;gap:6px;width:51px}.ds-rail button{font-family:'Manrope Variable','Segoe UI',sans-serif;font-size:11px;cursor:pointer;transition:background .14s,color .14s,border-color .14s;border:0;height:57px;width:51px;border-radius:8px;color:#a6ada1;background:none;font-size:9px}.ds-rail button.ds-selected{background:#ff834d13;color:#ff9b70}.ds-rail button:hover{background:#2a3027}.ds-rail button:focus-visible{outline:2px solid var(--focus,#ffae83);outline-offset:3px;}"
+    },
+    {
+      "name": "Demo tag",
+      "kind": "chip",
+      "refersTo": "demo-tag",
+      "description": "A compact source-status marker, not a section eyebrow.",
+      "html": "<span class=\"ds-tag\">DEMO</span>",
+      "css": ".ds-tag{font-family:inherit;display:inline-block;font-size:8px;padding:3px 5px;letter-spacing:.8px;border:1px solid #46513d;border-radius:3px;color:#c7d2bf;background:var(--shell,#171918)}"
+    },
+    {
+      "name": "Zoom region",
+      "kind": "custom",
+      "description": "Muted green timeline region with a distinct warm selected state.",
+      "html": "<button class=\"ds-zoom\" aria-pressed=\"true\">1.6x <span></span></button>",
+      "css": ".ds-zoom{font-family:'Manrope Variable','Segoe UI',sans-serif;font-size:11px;cursor:pointer;transition:background .14s,color .14s,border-color .14s;height:26px;min-width:130px;background:#69503a;border:1px solid #ff9e6d;color:#ffe3d0;border-radius:5px;display:flex;align-items:center;gap:5px;padding:0 8px;cursor:grab;font-size:8px}.ds-zoom span{height:1px;flex:1;background:#ffe3d066}.ds-zoom:hover{background:#795c42}.ds-zoom:focus-visible{outline:2px solid var(--focus,#ffae83);outline-offset:3px;}.ds-zoom:active{cursor:grabbing}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The recording desk",
+    "overview": "Swoop uses a fixed graphite workbench for recording, framing and editing time-based media. The chrome is restrained and compact; the video carries color, motion and personality. Stable tool locations, clear time readouts and direct preview feedback matter more than decorative animation.\n\nThis document records the built interface after its bounded correction pass. The actual typeface is locally bundled Manrope Variable and the actual icon family is Lucide. The earlier Segoe/Phosphor proposal in DESIGN-DIRECTION.md remains historical direction evidence, not the current implementation specification.",
+    "keyCharacteristics": [
+      "One warm orange action and selection family over green-tinted graphite neutrals.",
+      "A tight single-family type ramp with tabular time values.",
+      "Persistent source, timeline and inspector relationships.",
+      "Expressive content inside the preview; quiet, immediate editor controls."
+    ],
+    "rules": [
+      {
+        "name": "The Output Color Rule",
+        "body": "Canvas backgrounds and cursor colors may be saturated. They describe the video being made; they do not introduce a competing chrome action color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Control Rule",
+        "body": "Preserve the final 11px functional label and 10px time-ruler sizes when adding comparable controls. Remaining smaller metadata in the current status strip, trim fields and minor timeline furniture is not a size precedent for new input labels.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "**Do** keep the video larger and more expressive than the editor chrome.",
+      "**Do** use the orange family for action, selection, playhead and focus state.",
+      "**Do** preserve tabular numbers for duration, timing and numeric controls.",
+      "**Do** update preview output immediately when a treatment changes.",
+      "**Do** keep primary actions at the corrected 44px hit size.",
+      "**Do** respect reduced-motion for interface transitions while keeping creative output motion an explicit setting."
+    ],
+    "donts": [
+      "**Don't** turn the editor into a landing page with feature cards or oversized headings.",
+      "**Don't** introduce a second icon family or an external font request.",
+      "**Don't** copy the residual tiny metadata sizes into new functional form labels.",
+      "**Don't** animate content visibility behind scroll or delay access to the editor with entrance choreography.",
+      "**Don't** imply recording, saving or export success without real application state."
+    ]
+  }
+}

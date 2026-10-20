@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "version": "ffmpeg version 6.1.6 Copyright (c) 2000-2026 the FFmpeg developers",
+  "sha256": "48f88ce7a58f4e2601b6c49b08a370d40c8381180bf2dbc0650863d2a5eaabc5",
+  "checks": [
+    "FFmpeg 6.1.6 version and executable start",
+    "Diagnostic lavfi source, H.264 MP4 encode and null decode",
+    "vp8-opus.webm through exact Swoop MP4 command, audio/video mapping and full decode",
+    "vp9-opus.webm through exact Swoop MP4 command, audio/video mapping and full decode",
+    "h264-aac.mp4 through exact Swoop MP4 command, audio/video mapping and full decode",
+    "Full included demo MP4 decode"
+  ]
+}

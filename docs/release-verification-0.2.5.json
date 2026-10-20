@@ -1,0 +1,95 @@
+{
+  "version": "0.2.5",
+  "verifiedOn": "2026-10-21",
+  "platform": "Windows x64",
+  "unitTests": {
+    "rendererEngineProject": 50,
+    "native": 53,
+    "total": 103,
+    "failed": 0
+  },
+  "npmAuditVulnerabilities": 0,
+  "executedChecks": {
+    "installerPayload": 8,
+    "packagedDependency": 5,
+    "nsisPreflightHarness": 6,
+    "packagedSaveReopenMp4": 4,
+    "offlineDemo": 4,
+    "packagedRecovery": 7,
+    "encoderFormatAndAudio": 6
+  },
+  "installer": {
+    "name": "Swoop-Studio-Setup-0.2.5-x64.exe",
+    "bytes": 121536909,
+    "sha256": "80154755099edf215ce155f42ed30e9b94e67ac2b609b6ae7395d5882ca83705",
+    "unsigned": true
+  },
+  "encoder": {
+    "version": "ffmpeg version 6.1.6 Copyright (c) 2000-2026 the FFmpeg developers",
+    "sha256": "48f88ce7a58f4e2601b6c49b08a370d40c8381180bf2dbc0650863d2a5eaabc5",
+    "sources": [
+      {
+        "path": "source/ffmpeg-6.1.6.tar.xz",
+        "sha256": "d4fcb164028dd3beee5d92c0ac72e46aac6973c75ea12dc14de07bf8f407370a"
+      },
+      {
+        "path": "source/x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.tar.gz",
+        "sha256": "cd71a7515b0e9a012e1ac9b1f8415bebcaf6fc97d4db32286642ac4c0fbe24f9"
+      }
+    ],
+    "manifest": "vendor/ffmpeg/manifest.json"
+  },
+  "nativeHook": {
+    "version": "1.5.5",
+    "archiveSha256": "21b489ee141e5d2e82ec595510e8b7dd6c2d9c91266f4094be3bfe04e0a33acd",
+    "shippedNativeSha256": "ee68f046628d2e4406d8aa85c6489ad06578b64a0e19ed64822bd22e7c473b85",
+    "manifest": "vendor/uiohook/manifest.json"
+  },
+  "recovery": {
+    "checks": [
+      "Seeded storage case: native context bridge accepts ordered video chunks; forced process exit occurs after acknowledged writes and before one take is finalized.",
+      "After process restart, completed seeded media and cursor events are byte-exact; an unfinalized video prefix remains listed as interrupted and decodes with any container warnings reported separately.",
+      "Startup automatically offers Your recordings; Open recording restores the selected seed to the editor and a portable project retains exact media and cursor events.",
+      "The interrupted seeded take also opens through the actual recordings UI with identical partial bytes, a finite editor duration and a decoded video frame.",
+      "Actual owned-window MediaRecorder capture streams to a completed native backup, with cursor samples and a fully decodable raw WebM.",
+      "Closing the isolated studio without Save project or Export preserves the unedited actual recording; restart and the recordings UI restore identical media and cursors.",
+      "Actual interrupted capture: two on-disk byte sizes were observed while recording the owned window, then the app exited without MediaRecorder.stop or take completion. Restart retains identical partial media and the recovery UI opens a readable frame with a finite editor duration. Cursor metadata is not claimed for this interrupted take."
+    ],
+    "actualCompleted": {
+      "id": "72687517-f0a4-4fe7-a1a1-e2c697e21613",
+      "name": "Take 2026-10-20 20-32-56",
+      "bytes": 1105289,
+      "sha256": "f0b2e23affdf0066f5ec3820632bff141f1195fbb5295f112415f7f499106eac",
+      "pointerSamples": 57
+    },
+    "actualInterrupted": {
+      "id": "aaec4c03-c176-42da-bf71-b2424006458d",
+      "firstObservedBytes": 521163,
+      "bytes": 1177166,
+      "sha256": "472302454bcdf259ff2e0298e6571385c9b95aeaac0c1eb830055bb1c407b009",
+      "editor": {
+        "duration": 1.99,
+        "width": 1600,
+        "height": 1000,
+        "error": null
+      },
+      "cursorSamples": 0
+    },
+    "captureScope": "The isolated test Swoop window only; microphone and system audio disabled.",
+    "errors": [],
+    "networkRequests": []
+  },
+  "scope": {
+    "fullInstallerExecuted": false,
+    "installationAndUninstallTested": false,
+    "powerLossTested": false,
+    "allHardwareTested": false,
+    "userProfilesTouched": false,
+    "userWindowsClosed": false
+  },
+  "notes": [
+    "Unit tests and runtime checks ran locally before publication; CI results are visible in GitHub Actions.",
+    "Interrupted video may lack its ending or cursor track; expected incomplete-container warnings were retained in the local receipt.",
+    "Private recordings, profiles and raw test output are excluded from the source repository."
+  ]
+}
