@@ -1,4 +1,5 @@
 import type { PointerSample } from "./studio";
+import { cleanScreenTrack } from "./clean-capture";
 import {
   createRecordingBackup,
   recordingTakeName,
@@ -20,6 +21,8 @@ export type NativeSource = {
 export type RecordingConfig = {
   sourceId?: string;
   microphone: boolean;
+  microphoneDeviceId?: string;
+  microphoneChannel?: "all" | "left" | "right";
   systemAudio: boolean;
   onElapsed?: (seconds: number) => void;
   /** Called when the source ends or recording fails, so the UI can finish it. */
@@ -61,7 +64,7 @@ function captureError(error: unknown): Error {
   const name = error instanceof Error ? error.name : "";
   if (name === "NotAllowedError")
     return new Error(
-      "Screen capture was cancelled or permission was denied. Choose Record to try again.",
+      "Screen capture was cancelled or permission was denied. Choose New video to try again.",
     );
   if (name === "NotReadableError")
     return new Error(
@@ -69,7 +72,7 @@ function captureError(error: unknown): Error {
     );
   if (name === "InvalidStateError")
     return new Error(
-      "Choose Record in the active Swoop window to open the screen picker.",
+      "Choose New video in the active Swoop window to open the screen picker.",
     );
   return new Error(`Screen capture could not start: ${message(error)}`);
 }
@@ -91,7 +94,7 @@ export async function startRecording(
   const native = window.swoop;
   const warnings: string[] = [];
   const ownedTracks = new Set<MediaStreamTrack>();
-  const audioNodes: MediaStreamAudioSourceNode[] = [];
+  const audioNodes: AudioNode[] = [];
   let audioContext: AudioContext | undefined;
   let pointerCaptureStarted = false;
   let pointerLead = 0;
@@ -101,6 +104,7 @@ export async function startRecording(
   let elapsedTimer: ReturnType<typeof setInterval> | undefined;
   let cleanupDone = false;
   let removeEnded: (() => void) | undefined;
+  let cleanCapture: Awaited<ReturnType<typeof cleanScreenTrack>> | undefined;
 
   const warn = (value: string) => {
     if (value && !warnings.includes(value)) warnings.push(value);
@@ -114,6 +118,11 @@ export async function startRecording(
     cleanupDone = true;
     if (elapsedTimer) clearInterval(elapsedTimer);
     removeEnded?.();
+    try {
+      await cleanCapture?.stop();
+    } catch {
+      /* Release every owned media track even if IPC has gone away. */
+    }
     for (const node of audioNodes) {
       try {
         node.disconnect();
@@ -164,6 +173,28 @@ export async function startRecording(
         "The selected source did not provide a live video track. Choose another screen or window.",
       );
 
+    if (
+      native &&
+      config.sourceId &&
+      (await native.getAppInfo()).platform === "win32"
+    ) {
+      try {
+        cleanCapture = await cleanScreenTrack(native, config.sourceId);
+        videoTrack = own(cleanCapture.stream).getVideoTracks()[0];
+        cleanCapture.onEnded(() => {
+          warn(
+            "The selected screen or window stopped providing frames. The take has been stopped and its backup kept.",
+          );
+          videoTrack?.stop();
+          videoTrack?.dispatchEvent(new Event("ended"));
+        });
+      } catch (error) {
+        throw new Error(
+          `Cursor-free capture could not start: ${message(error)}. Keep the selected window visible, or choose a full display.`,
+        );
+      }
+    }
+
     const audioTracks: MediaStreamTrack[] = config.systemAudio
       ? display.getAudioTracks().filter((track) => track.readyState === "live")
       : [];
@@ -173,6 +204,7 @@ export async function startRecording(
       );
     }
 
+    let microphoneTrack: MediaStreamTrack | undefined;
     if (config.microphone) {
       let microphone: MediaStream;
       try {
@@ -180,9 +212,17 @@ export async function startRecording(
           await navigator.mediaDevices.getUserMedia({
             video: false,
             audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
+              ...(config.microphoneDeviceId &&
+              config.microphoneDeviceId !== "default"
+                ? { deviceId: { exact: config.microphoneDeviceId } }
+                : {}),
+              channelCount: { ideal: 2 },
+              echoCancellation:
+                !config.microphoneChannel || config.microphoneChannel === "all",
+              noiseSuppression:
+                !config.microphoneChannel || config.microphoneChannel === "all",
+              autoGainControl:
+                !config.microphoneChannel || config.microphoneChannel === "all",
             },
           }),
         );
@@ -199,6 +239,14 @@ export async function startRecording(
           "The microphone did not provide a live audio track. Choose a working microphone or turn Microphone off.",
         );
       audioTracks.push(...microphoneTracks);
+      microphoneTrack = microphoneTracks[0];
+      if (
+        config.microphoneChannel === "right" &&
+        (microphoneTrack.getSettings().channelCount ?? 1) < 2
+      )
+        throw new Error(
+          "This microphone has one channel. Choose All / mono or Left channel in recording setup.",
+        );
     }
 
     const recordingStream = own(new MediaStream([videoTrack]));
@@ -214,7 +262,23 @@ export async function startRecording(
           const node = audioContext.createMediaStreamSource(
             new MediaStream([track]),
           );
-          node.connect(destination);
+          if (
+            track === microphoneTrack &&
+            config.microphoneChannel &&
+            config.microphoneChannel !== "all"
+          ) {
+            const splitter = audioContext.createChannelSplitter(2);
+            const mono = audioContext.createGain();
+            mono.channelCount = 1;
+            mono.channelCountMode = "explicit";
+            node.connect(splitter);
+            splitter.connect(
+              mono,
+              config.microphoneChannel === "right" ? 1 : 0,
+            );
+            mono.connect(destination);
+            audioNodes.push(splitter, mono);
+          } else node.connect(destination);
           audioNodes.push(node);
         }
         // Only the recorder receives this mix. It never connects to speakers.
@@ -240,21 +304,28 @@ export async function startRecording(
             warn(
               "Cursor movement is recorded, but click detection is unavailable. Add zoom regions manually after recording.",
             );
-          try {
-            // `advanced` is forbidden in getDisplayMedia options, so apply it afterward.
-            await videoTrack.applyConstraints({
-              advanced: [{ cursor: "never" } as CursorConstraints],
-            });
-            const cursor = (videoTrack.getSettings() as CursorSettings).cursor;
-            if (cursor !== "never")
+          if (!cleanCapture)
+            try {
+              // `advanced` is forbidden in getDisplayMedia options, so apply it afterward.
+              await videoTrack.applyConstraints({
+                advanced: [{ cursor: "never" } as CursorConstraints],
+              });
+              const cursor = (videoTrack.getSettings() as CursorSettings)
+                .cursor;
+              if (cursor !== "never") {
+                pointerCaptureStarted = false;
+                await native.stopPointerCapture();
+                warn(
+                  "This source keeps its original cursor. Editable cursor effects are disabled for this take to avoid a double cursor.",
+                );
+              }
+            } catch {
+              pointerCaptureStarted = false;
+              await native.stopPointerCapture();
               warn(
-                "This source did not confirm cursor hiding. The original cursor may remain visible beneath cursor effects.",
+                "This source keeps its original cursor. Editable cursor effects are disabled for this take to avoid a double cursor.",
               );
-          } catch {
-            warn(
-              "This source cannot hide its original cursor. The original cursor may remain visible beneath cursor effects.",
-            );
-          }
+            }
         } else {
           warn(
             "Editable cursor tracking is unavailable for this source. The recording keeps its original cursor.",
@@ -277,9 +348,14 @@ export async function startRecording(
       );
     }
 
+    if (cleanCapture && !pointerCaptureStarted)
+      throw new Error(
+        "Cursor tracking could not start for this source. Choose a full display and try again.",
+      );
+
     if (videoTrack.readyState !== "live")
       throw new Error(
-        "The screen source ended before recording started. Choose Record to try again.",
+        "The screen source ended before recording started. Choose New video to try again.",
       );
     const mimeTypes = audioTracks.length
       ? [
@@ -513,7 +589,7 @@ export async function startRecording(
       );
       if (videoTrack.readyState !== "live")
         throw new Error(
-          "The screen source ended while preparing its backup. Choose Record to try again.",
+          "The screen source ended while preparing its backup. Choose New video to try again.",
         );
     }
 

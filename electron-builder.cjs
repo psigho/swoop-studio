@@ -14,6 +14,7 @@ module.exports = {
   files: [
     "dist/**/*",
     "electron/main.cjs",
+    "electron/clean-capture.cjs",
     "electron/preload.cjs",
     "electron/pointer-session.cjs",
     "electron/data-path.cjs",
@@ -25,6 +26,7 @@ module.exports = {
   asar: true,
   asarUnpack: ["**/*.node"],
   extraResources: [
+    { from: "native/capture", to: "capture" },
     { from: "LICENSE", to: "LICENSE-Swoop.txt" },
     { from: "vendor/uiohook", to: "third-party/uiohook" },
     { from: "vendor/ffmpeg/win32-x64/ffmpeg.exe", to: "encoder/ffmpeg.exe" },

@@ -20,6 +20,7 @@ const { randomUUID } = require("node:crypto");
 const { PointerSession } = require("./pointer-session.cjs");
 const { resolveDataDirectory } = require("./data-path.cjs");
 const { TakeStore } = require("./take-store.cjs");
+const { CleanCapture } = require("./clean-capture.cjs");
 const {
   prepareDependencyCheck,
   runDependencyCheck,
@@ -66,6 +67,47 @@ let encoderProcess = null;
 let ffmpegPromise;
 let quitApproved = false;
 let takeStore;
+let cleanCapture = null;
+let cleanSource = null;
+let acceptedSourceId = null;
+
+function stopCleanCapture() {
+  cleanCapture?.stop();
+  cleanCapture = null;
+  cleanSource = null;
+}
+
+async function startCleanCapture(sourceId) {
+  if (process.platform !== "win32" || sourceId !== acceptedSourceId || !sourceInventory.has(sourceId))
+    throw new Error("Choose a screen or window in recording setup first.");
+  if (cleanCapture) throw new Error("A screen capture is already running.");
+  const source = sourceInventory.get(sourceId);
+  const target = {};
+  if (sourceId.startsWith("screen:")) {
+    const display = screen.getAllDisplays().find((item) => String(item.id) === source.display_id);
+    if (!display) throw new Error("The selected display is no longer connected.");
+    target.bounds = screen.dipToScreenRect(null, display.bounds);
+  } else {
+    const match = /^window:(\d+):\d+$/.exec(sourceId);
+    if (!match) throw new Error("The selected window is unavailable.");
+    target.windowHandle = match[1];
+    target.bounds = await getWindowBounds(sourceId);
+    if (!target.bounds) throw new Error("Restore the selected window before recording.");
+  }
+  const executable = app.isPackaged
+    ? path.join(process.resourcesPath, "capture", "win32-x64", "SwoopCapture.exe")
+    : path.join(ROOT, "native", "capture", "win32-x64", "SwoopCapture.exe");
+  if (!fs.existsSync(executable)) throw new Error("The bundled screen recorder is unavailable. Reinstall Swoop Studio.");
+  // Recheck after asynchronous source lookup; concurrent starts cannot create two captures.
+  if (cleanCapture || acceptedSourceId !== sourceId) throw new Error("Recording setup changed. Choose your source again.");
+  const capture = new CleanCapture({ executable, target, onFrame: (frame) => {
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("swoop:clean-frame", frame);
+  } });
+  cleanCapture = capture;
+  cleanSource = { id: sourceId, bounds: target.bounds };
+  try { await capture.ready; return { id: capture.id }; }
+  catch (error) { if (cleanCapture === capture) stopCleanCapture(); throw error; }
+}
 
 function recordings() {
   if (!takeStore)
@@ -249,7 +291,11 @@ using System;
 using System.Runtime.InteropServices;
 public static class SwoopWindowRect {
   [StructLayout(LayoutKind.Sequential)] public struct RECT { public int Left, Top, Right, Bottom; }
+  [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X, Y; }
   [DllImport("user32.dll")] public static extern bool IsWindow(IntPtr window);
+  [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr window);
+  [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr window, out RECT rect);
+  [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr window, ref POINT point);
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out RECT rect);
   [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr window, int attribute, out RECT rect, int size);
   [DllImport("user32.dll")] public static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
@@ -257,7 +303,7 @@ public static class SwoopWindowRect {
 '@
 [SwoopWindowRect]::SetThreadDpiAwarenessContext([IntPtr]::new(-4)) | Out-Null
 $handle = [IntPtr]::new([long]::Parse('${match[1]}'))
-if (-not [SwoopWindowRect]::IsWindow($handle)) { throw 'The selected window is no longer open.' }
+if (-not [SwoopWindowRect]::IsWindow($handle) -or [SwoopWindowRect]::IsIconic($handle)) { throw 'The selected window is closed or minimized.' }
 $rect = New-Object SwoopWindowRect+RECT
 $status = [SwoopWindowRect]::DwmGetWindowAttribute($handle, 9, [ref]$rect, 16)
 if ($status -ne 0) { [SwoopWindowRect]::GetWindowRect($handle, [ref]$rect) | Out-Null }
@@ -295,7 +341,14 @@ async function startPointerCapture(sourceId) {
   let scope = "display";
   let coordinateSpace = "dip";
   let warning = "";
-  if (sourceId.startsWith("screen:")) {
+  if (cleanSource?.id === sourceId) {
+    bounds = cleanSource.bounds;
+    coordinateSpace = "physical";
+    if (sourceId.startsWith("window:")) {
+      scope = "window-initial-bounds";
+      warning = "Keep the recorded window visible, in the same position and size for accurate cursor effects.";
+    }
+  } else if (sourceId.startsWith("screen:")) {
     const displays = screen.getAllDisplays();
     const display = displays.find(
       (item) => String(item.id) === source.display_id,
@@ -685,6 +738,14 @@ async function openProject() {
 }
 
 function setupIpc() {
+  handle("swoop:clean-start", (_event, id) => startCleanCapture(id));
+  handle("swoop:clean-stop", (_event, id) => { if (cleanCapture?.id === id) stopCleanCapture(); });
+  ipcMain.on("swoop:clean-ack", (event, id) => {
+    try { trustedEvent(event); cleanCapture?.acknowledge(id); } catch { /* Ignore untrusted senders. */ }
+  });
+  handle("swoop:sound-settings", async () => {
+    if (process.platform === "win32") await shell.openExternal("ms-settings:sound");
+  });
   handle("swoop:get-sources", () => getSources());
   handle("swoop:select-source", (_event, id) => {
     if (typeof id !== "string" || !sourceInventory.has(id)) return false;
@@ -790,6 +851,7 @@ function setupMediaPermissions() {
         const streams = { video: source };
         if (request.audioRequested && process.platform === "win32")
           streams.audio = "loopback";
+        acceptedSourceId = sourceId;
         callback(streams);
       } catch (error) {
         log(`Display capture request failed: ${errorText(error)}`);
@@ -858,6 +920,7 @@ function createWindow() {
   );
   mainWindow.webContents.on("will-prevent-unload", confirmUnload);
   mainWindow.webContents.on("render-process-gone", (_event, details) => {
+    stopCleanCapture();
     stopPointerCapture();
     takeStore
       ?.interruptAll()
@@ -867,7 +930,7 @@ function createWindow() {
     log(`Renderer process exited: ${details.reason}`);
   });
   mainWindow.on("close", (event) => {
-    if (quitApproved || (!pointerSession && !exporting)) return;
+    if (quitApproved || (!pointerSession && !cleanCapture && !exporting)) return;
     event.preventDefault();
     dialog
       .showMessageBox(mainWindow, {
@@ -888,12 +951,14 @@ function createWindow() {
         if (response === 1) {
           quitApproved = true;
           stopPointerCapture();
+          stopCleanCapture();
           encoderProcess?.kill();
           mainWindow.close();
         }
       });
   });
   mainWindow.on("closed", () => {
+    stopCleanCapture();
     stopPointerCapture();
     mainWindow = null;
   });
@@ -984,6 +1049,7 @@ else {
     });
   app.on("window-all-closed", () => app.quit());
   app.on("will-quit", () => {
+    stopCleanCapture();
     stopPointerCapture();
     encoderProcess?.kill();
   });

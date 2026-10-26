@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.6
+
+- Windows Graphics Capture excludes the original Windows pointer before editable cursor effects are added, preventing the second cursor during fast movement in new recordings.
+- A visible **New video** button opens recording setup for a fresh take while preserving the current edit if setup is cancelled.
+- Microphone selection by device name and all/left/right input routing. A selected left or right input plays in both ears.
+- Recording setup shows the default Windows system-sound output and links to Windows sound settings.
+- Recording backups accept Windows short-path aliases while still rejecting linked files/folders and junctions.
+- Updates the bundled Electron runtime to 44.9.3.
+- Installer checks the native recording helper, Windows capture API and graphics device. Requires Windows 10 version 2004 (build 19041) or newer, or Windows 11, on x64.
+
+The Windows capture helper and its complete MIT-licensed source/build recipe accompany the app. Existing clips with an original cursor baked into their pixels retain it.
+
 ## 0.2.5
 
 First public Windows x64 release.

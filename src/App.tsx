@@ -65,6 +65,9 @@ import {
 import { parseProject } from "./project";
 import type { SavedTake } from "./bridge";
 import RecordingsDialog from "./components/RecordingsDialog";
+import RecordingAudio, {
+  type MicrophoneChannel,
+} from "./components/RecordingAudio";
 import EffectsPlayground, {
   CursorThumbnail,
 } from "./components/EffectsPlayground";
@@ -329,6 +332,9 @@ export default function App() {
   const [selectedSource, setSelectedSource] = useState("");
   const [sourcesLoading, setSourcesLoading] = useState(false);
   const [microphone, setMicrophone] = useState(false);
+  const [microphoneDeviceId, setMicrophoneDeviceId] = useState("default");
+  const [microphoneChannel, setMicrophoneChannel] =
+    useState<MicrophoneChannel>("all");
   const [systemAudio, setSystemAudio] = useState(true);
   const [minimizeRecording, setMinimizeRecording] = useState(true);
   const [recording, setRecording] = useState(false);
@@ -813,6 +819,8 @@ export default function App() {
       const session = await startRecording({
         sourceId: native ? selectedSource : undefined,
         microphone,
+        microphoneDeviceId,
+        microphoneChannel,
         systemAudio,
         onElapsed: setRecordTime,
         onBackupStatus: (status) => {
@@ -1489,8 +1497,8 @@ export default function App() {
             onClick={() => void showRecorder()}
             disabled={recording || finishingTake || exporting}
           >
-            <Circle size={12} fill="currentColor" />
-            Record
+            <Plus size={16} />
+            New video
           </button>
           <button
             className="button primary export-button"
@@ -2579,7 +2587,7 @@ export default function App() {
             <Clapperboard size={11} />
             Load playground
           </button>
-          <span>v{appInfo?.version ?? "0.2.5"}</span>
+          <span>v{appInfo?.version ?? "0.2.6"}</span>
         </div>
       </footer>
       <input
@@ -2653,8 +2661,11 @@ export default function App() {
           >
             <div className="modal-heading">
               <div>
-                <h2>What are we making?</h2>
-                <p>Choose your screen. We’ll take care of the moves.</p>
+                <h2>Start a new video</h2>
+                <p>
+                  Choose a screen or window and your sound. Your new take opens
+                  on a fresh timeline.
+                </p>
               </div>
               <IconButton
                 label="Close recording setup"
@@ -2710,7 +2721,7 @@ export default function App() {
                 label="System audio"
                 description={
                   native
-                    ? "Records all system sounds on Windows."
+                    ? "Records the Windows default speakers or headphones."
                     : "Where supported by your selected source."
                 }
                 value={systemAudio}
@@ -2730,6 +2741,20 @@ export default function App() {
                   />
                 ))}
             </div>
+            <RecordingAudio
+              enabled={microphone}
+              deviceId={microphoneDeviceId}
+              channel={microphoneChannel}
+              onDevice={setMicrophoneDeviceId}
+              onChannel={setMicrophoneChannel}
+            />
+            {native && (
+              <p className="record-backup-note">
+                Cursor-free capture keeps one editable cursor in your video.
+                Keep a selected window visible and in place; choose a full
+                display for moving between apps.
+              </p>
+            )}
             <p className="record-backup-note">
               {native
                 ? "Your original take is backed up on this device as you record. Find it later in Recordings. Save a project separately to keep your edits."

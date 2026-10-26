@@ -225,7 +225,7 @@ test("an unavailable backup folder rejects initialization before recording can s
     /Automatic recording backup could not start: Access denied/,
   );
   assert.equal(statuses.at(-1)?.state, "error");
-  assert.match(statuses.at(-1)?.error || "", /try Record again/);
+  assert.match(statuses.at(-1)?.error || "", /try New video again/);
 });
 
 test("a throwing status observer cannot interrupt preserving the recording", async () => {

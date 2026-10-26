@@ -113,14 +113,15 @@ async function checkDependencies(options) {
       if (
         platform !== "win32" ||
         architecture !== "x64" ||
-        Number(release.split(".")[0]) < 10
+        Number(release.split(".")[0]) < 10 ||
+        Number(release.split(".")[2] || 0) < 19041
       )
         throw new Error(
           `Unsupported platform: ${platform}/${architecture}, OS ${release}`,
         );
-      return "Windows 10 or later, x64 process";
+      return "Windows 10 version 2004 or later, x64 process";
     },
-    "Use this x64 build on an Intel/AMD Windows 10 or Windows 11 PC.",
+    "Use this x64 build on an Intel/AMD Windows 10 version 2004 or newer, or Windows 11 PC.",
   );
   if (!report.failures.length) {
     await check(
@@ -164,6 +165,20 @@ async function checkDependencies(options) {
         return "Native Windows hook loaded; capture was not started";
       },
       "Restart Setup to restore the native module. Windows must be able to load its system components.",
+    );
+    await check(
+      "capture",
+      "Windows cursor-free screen capture",
+      async () => {
+        const executable = /(?:^|[\\/])app\.asar$/.test(applicationRoot)
+          ? path.join(path.dirname(applicationRoot), "capture", "win32-x64", "SwoopCapture.exe")
+          : path.join(applicationRoot, "native", "capture", "win32-x64", "SwoopCapture.exe");
+        if (!exists(executable)) throw new Error("The bundled Windows screen recorder is missing.");
+        const result = await (options.runCapture ?? runFile)(executable, ["--check"], { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 });
+        if (!String(result.stdout ?? result).includes("Windows Graphics Capture and D3D11 ready")) throw new Error("Windows screen recording support could not be confirmed.");
+        return "Windows capture API and graphics device checked; no screen was recorded";
+      },
+      "Restart Setup to restore the recorder. Windows 10 version 2004 or newer and working graphics drivers are required.",
     );
     await check(
       "encoder",

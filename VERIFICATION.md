@@ -2,6 +2,18 @@
 
 Executed locally on Windows x64 on 16 October 2026 (Asia/Karachi).
 
+## Release 0.2.6 — 26 October 2026
+
+The current receipt is [docs/release-verification-0.2.6.json](docs/release-verification-0.2.6.json). This candidate uses Electron 44.9.3 and an original MIT Windows Graphics Capture helper, with cursor capture explicitly disabled before the image reaches the editor.
+
+- **111 unit tests passed** (50 renderer/engine/project, 61 native); build and npm audit passed with zero reported vulnerabilities.
+- Nine packaged payload checks, six packaged dependency checks, five NSIS harness checks, eleven packaged editor/recording/export checks, four offline demo checks and all seven packaged recording/recovery workflows passed.
+- A real owned-window capture remained still for 17 seconds and finished as an 18.6-second take, with 403 native pointer samples, backup, project save/reopen and MP4 export. The capture helper and renderer repeat a stationary image without ending the take or losing its clock.
+- A selected named test microphone was requested by exact device ID. Two owned input tones verified right-channel routing in the encoded MP4: 660 Hz reached both output channels; the unselected 220 Hz channel was excluded. No real microphone or system sound was recorded in this test.
+- New-video unsaved-edit protection, cursor-free capture source authorization, JPEG framing/backpressure, cancellation cleanup, the native helper dependency check and Windows short-path backup handling have regression coverage. Completed and interrupted recordings reopened with matching retained bytes; no helper remained running after the owned test processes exited.
+
+Physical fast-mouse movement was **not** verified in this run: the desktop overlay prevented Windows input. The recording and export tests used owned browser actions; they do not establish physical native click/drag behavior. Previous versions' native click/drag tests are retained below as historical evidence, not evidence for the new capture backend. Full installer install/uninstall, clean-machine and power-loss checks remain outside the verified scope. The installer is unsigned.
+
 ## Public release 0.2.5 — 21 October 2026
 
 The current machine-readable receipt is [docs/release-verification-0.2.5.json](docs/release-verification-0.2.5.json). Earlier sections below retain the scope and distribution status of their named local candidates.

@@ -27,6 +27,7 @@ const checks = [];
 assert.ok(entries.includes("/dist/index.html"));
 for (const source of [
   "electron/main.cjs",
+  "electron/clean-capture.cjs",
   "electron/preload.cjs",
   "electron/pointer-session.cjs",
   "electron/data-path.cjs",
@@ -43,7 +44,7 @@ const packedManifest = JSON.parse(
 );
 assert.equal(packedManifest.version, manifest.version);
 checks.push(
-  "Packaged app version and seven runtime sources match the reviewed checkout.",
+  "Packaged app version and eight runtime sources match the reviewed checkout.",
 );
 
 const includedDemo = extractFile(
@@ -55,6 +56,35 @@ const demoSource = await fs.readFile(
 );
 assert.deepEqual(includedDemo, demoSource);
 checks.push("Included demo video exactly matches the reviewed local original.");
+
+const captureRoot = path.join(root, "native", "capture");
+const captureManifest = JSON.parse(
+  await fs.readFile(path.join(captureRoot, "manifest.json"), "utf8"),
+);
+for (const receipt of [captureManifest.binary, ...captureManifest.sources]) {
+  const original = await fs.readFile(path.join(captureRoot, receipt.path));
+  assert.equal(
+    createHash("sha256").update(original).digest("hex"),
+    receipt.sha256,
+  );
+  assert.deepEqual(
+    await fs.readFile(
+      path.join(unpacked, "resources", "capture", receipt.path),
+    ),
+    original,
+  );
+}
+assert.match(
+  execFileSync(
+    path.join(unpacked, "resources", "capture", captureManifest.binary.path),
+    ["--check"],
+    { encoding: "utf8", windowsHide: true, timeout: 15000 },
+  ),
+  /Windows Graphics Capture and D3D11 ready/,
+);
+checks.push(
+  "Original native cursor-free Windows capture helper, full MIT source/build materials and graphics/API check match the reviewed build.",
+);
 
 for (const entry of entries) {
   assert.ok(

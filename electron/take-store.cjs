@@ -120,8 +120,20 @@ class TakeStore {
     const stat = await this.fs.lstat(directory);
     if (stat.isSymbolicLink() || !stat.isDirectory())
       throw new Error("Recording folders must be regular folders, not links.");
-    if (normalized(await this.fs.realpath(directory)) !== normalized(directory))
-      throw new Error("Recording folders cannot pass through a symbolic link.");
+    if (normalized(await this.fs.realpath(directory)) !== normalized(directory)) {
+      // Windows expands 8.3 names (for example RUNNER~1) in realpath. A
+      // different spelling is safe only after every ancestor is checked for
+      // links/junctions; comparing path strings alone rejects valid folders.
+      let ancestor = path.resolve(directory);
+      for (;;) {
+        const entry = await this.fs.lstat(ancestor);
+        if (entry.isSymbolicLink() || !entry.isDirectory())
+          throw new Error("Recording folders cannot pass through a symbolic link.");
+        const parent = path.dirname(ancestor);
+        if (parent === ancestor) break;
+        ancestor = parent;
+      }
+    }
   }
 
   async ensureDirectory() {
@@ -147,8 +159,12 @@ class TakeStore {
       const after = await handle.stat();
       if (!after.isFile() || before.dev !== after.dev || before.ino !== after.ino || after.nlink !== 1)
         throw new Error("The recording file changed while it was being opened.");
-      if (normalized(await this.fs.realpath(file)) !== normalized(file))
-        throw new Error("Recording files cannot pass through a symbolic link.");
+      if (normalized(await this.fs.realpath(file)) !== normalized(file)) {
+        await this._directory(path.dirname(file));
+        const current = await this.fs.lstat(file);
+        if (current.isSymbolicLink() || !current.isFile() || current.nlink !== 1 || current.dev !== after.dev || current.ino !== after.ino)
+          throw new Error("The recording file changed while it was being opened.");
+      }
       return handle;
     } catch (error) {
       await handle.close();

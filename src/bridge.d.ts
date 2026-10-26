@@ -41,6 +41,17 @@ export type SavedTake = {
 export interface SwoopBridge {
   getSources(): Promise<NativeSource[]>;
   selectSource(id: string): Promise<boolean>;
+  startCleanCapture(id: string): Promise<{ id: string }>;
+  stopCleanCapture(id: string): Promise<void>;
+  ackCleanFrame(id: string): void;
+  onCleanFrame(
+    callback: (frame: {
+      id: string;
+      bytes?: Uint8Array;
+      error?: string;
+    }) => void,
+  ): () => void;
+  openSoundSettings(): Promise<void>;
   startPointerCapture(id?: string): Promise<PointerCaptureStatus>;
   pausePointerCapture(paused: boolean): Promise<boolean>;
   stopPointerCapture(): Promise<PointerSample[]>;
@@ -58,11 +69,14 @@ export interface SwoopBridge {
     height: number;
   }): Promise<{ id: string; path: string }>;
   appendTakeChunk(id: string, bytes: ArrayBuffer | Uint8Array): Promise<void>;
-  completeTake(id: string, details: {
-    duration: number;
-    pointers: PointerSample[];
-    warnings: string[];
-  }): Promise<void>;
+  completeTake(
+    id: string,
+    details: {
+      duration: number;
+      pointers: PointerSample[];
+      warnings: string[];
+    },
+  ): Promise<void>;
   interruptTake(id: string): Promise<void>;
   listTakes(): Promise<{ directory: string; takes: SavedTake[] }>;
   openTake(id: string): Promise<{

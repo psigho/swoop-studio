@@ -1,5 +1,11 @@
 # Third-party software
 
+Swoop's original `native/capture` helper is MIT licensed and includes its full
+source, recipe, license and executable receipt in the app's `resources/capture`
+folder. It calls Windows Graphics Capture, D3D11 and Windows Imaging Component.
+Its statically linked GCC/C++ runtime uses the GCC Runtime Library Exception;
+the GCC, exception and MinGW-w64 notices below also apply to this helper.
+
 Swoop Studio's original application code is MIT licensed; see `LICENSE` in the
 source repository and `resources/LICENSE-Swoop.txt` in the installed app. This
 does not relicense its third-party components.
@@ -21,7 +27,7 @@ JavaScript application.
   `resources/encoder/manifest.json`, `build.sh` and `SOURCE.md`.
 - Complete corresponding FFmpeg and x264 source archives, build recipe,
   signatures and notices: `vendor/ffmpeg/` in the public repository and
-  `Swoop-Studio-Encoder-Source-0.2.5.zip` beside the installer on the release page.
+  `Swoop-Studio-Encoder-Source-0.2.6.zip` beside the installer on the release page.
 - Upstream sources: [FFmpeg](https://ffmpeg.org/download.html) and
   [VideoLAN x264](https://code.videolan.org/videolan/x264).
 
@@ -40,7 +46,7 @@ library's LGPL license.
 
 The exact upstream npm source archive, integrity/hash receipt, full license
 texts and rebuild/replacement instructions are in `vendor/uiohook/` and the
-release's `Swoop-Studio-Native-Hook-Source-0.2.5.zip`. Installed copies of the
+release's `Swoop-Studio-Native-Hook-Source-0.2.6.zip`. Installed copies of the
 instructions, receipt and license texts are in
 `resources/third-party/uiohook/`. The archive contains the native wrapper,
 libuiohook C sources and headers, and the `binding.gyp` build description.

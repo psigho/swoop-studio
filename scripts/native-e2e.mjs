@@ -52,7 +52,7 @@ try {
     { windowsHide: true, timeout: 30000 },
   );
 }
-env.SWOOP_DATA_DIR = path.join(root, "artifacts", `e2e-${version}-profile`);
+env.SWOOP_DATA_DIR = path.join(root, "artifacts", `e2e-${version}-profile-${Date.now()}`);
 const packaged = process.env.SWOOP_PACKAGED === "1";
 const app = await electron.launch({
   executablePath: packaged
@@ -206,7 +206,7 @@ try {
   }
   checks.push("trim-end replay regression: four consecutive passes");
 
-  await page.getByRole("button", { name: "Record", exact: true }).click();
+  await page.getByRole("button", { name: "New video", exact: true }).click();
   await expect(
     page.getByRole("dialog", { name: "New recording" }),
   ).toBeVisible();

@@ -8,6 +8,16 @@ contextBridge.exposeInMainWorld(
   Object.freeze({
     getSources: () => ipcRenderer.invoke("swoop:get-sources"),
     selectSource: (id) => ipcRenderer.invoke("swoop:select-source", id),
+    startCleanCapture: (id) => ipcRenderer.invoke("swoop:clean-start", id),
+    stopCleanCapture: (id) => ipcRenderer.invoke("swoop:clean-stop", id),
+    ackCleanFrame: (id) => ipcRenderer.send("swoop:clean-ack", id),
+    openSoundSettings: () => ipcRenderer.invoke("swoop:sound-settings"),
+    onCleanFrame: (callback) => {
+      if (typeof callback !== "function") throw new TypeError("A frame callback is required.");
+      const listener = (_event, frame) => callback(frame);
+      ipcRenderer.on("swoop:clean-frame", listener);
+      return () => ipcRenderer.removeListener("swoop:clean-frame", listener);
+    },
     startPointerCapture: (id) => ipcRenderer.invoke("swoop:pointer-start", id),
     pausePointerCapture: (paused) =>
       ipcRenderer.invoke("swoop:pointer-pause", paused),

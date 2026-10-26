@@ -1,0 +1,105 @@
+{
+  "version": "0.2.6",
+  "verifiedOn": "2026-10-26",
+  "platform": "Windows x64",
+  "runtime": "Electron 44.9.3",
+  "unitTests": {
+    "rendererEngineProject": 50,
+    "native": 61,
+    "total": 111,
+    "failed": 0
+  },
+  "npmAuditVulnerabilities": 0,
+  "executedChecks": {
+    "installerPayload": 9,
+    "packagedDependency": 6,
+    "nsisPreflightHarness": 5,
+    "packagedEditorRecordingExport": 11,
+    "offlineDemo": 4,
+    "packagedRecovery": 7
+  },
+  "installer": {
+    "bytes": 122054677,
+    "sha256": "20113c0cea79f1ef35d36d29bbca4f6644e1687b40d606072050862867764744",
+    "unsigned": true
+  },
+  "captureHelper": {
+    "schemaVersion": 1,
+    "name": "SwoopCapture",
+    "version": "1.0",
+    "license": "MIT",
+    "platform": "win32-x64",
+    "minimumWindowsBuild": 19041,
+    "binary": {
+      "path": "win32-x64/SwoopCapture.exe",
+      "sha256": "cbe46de29f484162a854914bb621b20a62081c08fa4982259abda9ed04cd9a4e"
+    },
+    "sources": [
+      {
+        "path": "capture.cpp",
+        "sha256": "8d26b1681437cd3670ef9f38717862f392c300eea38f782f5b3f8c96436f8e19"
+      },
+      {
+        "path": "build.sh",
+        "sha256": "fa516e36819997a68395f4041e3c69a1f3905dba56736773ef9fb41485d2f307"
+      },
+      {
+        "path": "README.md",
+        "sha256": "d786dc7df0d9d148183574cff56911a9f7d7bda9b76863993253616d7c2a81ce"
+      },
+      {
+        "path": "imports.txt",
+        "sha256": "524b747ca1a7774d109b3a6912fd425b98c0c7618f0bb4ad0b6cb7bc31d0d9e4"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "3453cc6ab8c1dc88131c7bfe6d1e7819c0e11edc7c1646b8bde91ff0a34b7167"
+      }
+    ],
+    "systemApis": [
+      "Windows.Graphics.Capture",
+      "Direct3D 11",
+      "Windows Imaging Component"
+    ],
+    "compiler": "MSYS2 UCRT64 GCC 16.2.0; static C++ and GCC support runtimes",
+    "reproducesByteIdentically": false
+  },
+  "ownedWindowRecording": {
+    "passed": true,
+    "seconds": 18.619000000059604,
+    "stillScreenTestSeconds": 17,
+    "pointerSamples": 403,
+    "mp4Bytes": 1463338,
+    "runtimeVersion": "44.9.3",
+    "physicalMouseTestPerformed": false
+  },
+  "microphoneRouting": {
+    "passed": true,
+    "channels": 2,
+    "duration": 18.624,
+    "levels": [
+      {
+        "selected_660_hz": 15515.11432488323,
+        "unselected_220_hz": 0.03232731600906626
+      },
+      {
+        "selected_660_hz": 15515.11432488323,
+        "unselected_220_hz": 0.03232731600906626
+      }
+    ],
+    "check": "selected right microphone input reaches both ears; left input excluded"
+  },
+  "notTested": [
+    "Physical fast-mouse movement while the desktop was unavailable",
+    "Full installer install/uninstall registration",
+    "A clean machine or every capture device",
+    "Power loss"
+  ],
+  "distribution": {
+    "sourceLicense": "MIT",
+    "thirdPartyLicensesSeparate": true,
+    "githubRepository": "https://github.com/psigho/swoop-studio",
+    "releaseTag": "v0.2.6",
+    "publicationEvidence": "See GitHub release and asset digests; this receipt records local verification."
+  }
+}

@@ -1625,6 +1625,17 @@ input[type="range"]::-webkit-slider-thumb {
 .record-options {
   padding: 8px 26px 23px;
 }
+.source-modal { max-height: 90vh; overflow-y: auto; }
+.source-modal > .record-backup-note { margin: 8px 26px 16px; }
+.record-audio-devices { padding: 0 26px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.record-audio-devices > label { display: grid; gap: 8px; color: #e4ebda; font-size: 11px; }
+.record-audio-devices select { width: 100%; min-width: 0; padding: 10px; border: 1px solid #536348; border-radius: 6px; background: #181f13; color: #f3f5eb; font: inherit; }
+.audio-source-note, .audio-device-error { grid-column: 1 / -1; margin: 0; font-size: 10px; line-height: 1.6; color: #bdcbb0; }
+.audio-device-error { color: #ffb295; }
+.system-audio-source { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; border-top: 1px solid #3f4c34; padding-top: 14px; font-size: 10px; }
+.system-audio-source span { flex: 1; }
+.system-audio-source strong, .system-audio-source small { display: block; margin-top: 5px; line-height: 1.5; }
+.system-audio-source small { color: #bdcbb0; }
 .record-options .toggle-row {
   padding: 14px 0;
   border-bottom: 1px solid #3f4c34;

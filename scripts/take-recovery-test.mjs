@@ -236,7 +236,7 @@ async function saveProjectForAssertion(file) {
 async function startOwnWindowRecording() {
   const before = await page.evaluate(() => window.swoop.listTakes());
   const known = new Set(before.takes.map((take) => take.id));
-  await page.getByRole("button", { name: "Record", exact: true }).click();
+  await page.getByRole("button", { name: "New video", exact: true }).click();
   const dialog = page.getByRole("dialog", {
     name: "New recording",
     exact: true,

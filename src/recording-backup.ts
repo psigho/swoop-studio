@@ -74,7 +74,7 @@ export async function createRecordingBackup(
     if (!take.id || !take.path)
       throw new Error("The recording folder did not return a valid take.");
   } catch (error) {
-    const detail = `Automatic recording backup could not start: ${message(error)}. Check that the recording folder is writable and has free space, then try Record again.`;
+    const detail = `Automatic recording backup could not start: ${message(error)}. Check that the recording folder is writable and has free space, then try New video again.`;
     emit({ state: "error", error: detail });
     throw new Error(detail);
   }

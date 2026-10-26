@@ -64,6 +64,22 @@ test("completed raw take and cursor metadata survive a new store instance", asyn
   assert.equal(manifest.state, "ready");
 });
 
+test("canonical path aliases are accepted without weakening ancestor link checks", async (t) => {
+  const fileSystem = { ...fsp, realpath: async (file) => path.join(path.parse(path.resolve(file)).root, "canonical-long-name", path.basename(file)) };
+  const { directory, store } = await fixture(t, { fileSystem });
+  const take = await store.beginTake(details);
+  await store.appendTakeChunk(take.id, new Uint8Array([1, 2, 3]));
+  await store.completeTake(take.id, completed);
+  assert.deepEqual([...((await store.openTake(take.id)).bytes)], [1, 2, 3]);
+  const original = fileSystem.lstat;
+  fileSystem.lstat = async (file) => {
+    const stat = await original(file);
+    if (file === path.dirname(directory)) return { ...stat, isSymbolicLink: () => true, isDirectory: () => true };
+    return stat;
+  };
+  await assert.rejects(store.ensureDirectory(), /symbolic link/);
+});
+
 test("an interrupted recording remains on disk and is listed after restart", async (t) => {
   const { directory, store } = await fixture(t);
   const take = await store.beginTake(details);

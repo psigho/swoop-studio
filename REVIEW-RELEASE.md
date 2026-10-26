@@ -2,6 +2,14 @@
 
 The user approved public publication on 21 October 2026 after the local feature tests. Release **0.2.5** uses MIT for Swoop's original application code. Its separate FFmpeg/x264 executable retains its own GPL license and corresponding source/build materials. The source, included original demo and installer payload were audited for credentials, private recordings and proprietary third-party application assets; none were found in the intended payload. Earlier sections below record the local review history and apply to their named versions.
 
+## 0.2.6 review
+
+Reviewed the new Windows capture path, source authorization, helper lifetime, bounded frame delivery, audio-device selection and routing, recording cleanup, backup alias handling, packaging and source/license distribution. The original Windows cursor is excluded by `IGraphicsCaptureSession2` before custom effects are drawn. The helper takes only a validated window handle or exact monitor rectangle, runs without a shell, and exits if its owning app process dies. IPC accepts only the trusted studio renderer and keeps one frame in flight; old pending frames are dropped.
+
+Review fixes included retaining static-screen capture beyond 15 seconds, keeping its canvas recording clock alive, rejecting unsupported right-channel mono inputs, draining cleanup after capture errors, ending an unready helper on cancellation, and retaining ancestor link checks while allowing Windows 8.3 aliases. The installer now probes the native capture helper and D3D11 without starting recording. Electron was updated to 44.9.3; audit reports zero vulnerabilities.
+
+The executed results and explicit limits are in `docs/release-verification-0.2.6.json` and `VERIFICATION.md`. Physical fast mouse input could not be exercised because the Windows desktop was unavailable; no passing physical-mouse test is claimed. The real owned-window capture, 17-second still-screen case, encoded audio-channel selection, backup/recovery and export checks passed. This is a structured source review by the implementing agent, not an independent audit.
+
 ## Automatic recording backups
 
 A newly recorded take previously lived only in renderer memory. Closing without Save project or Export discarded the video, even when no edits had been made. Desktop capture now starts an app-data recording backup before starting its encoder, appends ordered WebM chunks with a disk flush before acknowledgement, and atomically stores the completed cursor track and recording metadata. No backups are automatically deleted. A writable backup folder is required to start desktop recording; later write failures keep the in-memory take available with explicit Save/Export guidance.

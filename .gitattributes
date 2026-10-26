@@ -10,3 +10,4 @@
 # These reviewed files have byte-level SHA-256 receipts; keep their exact bytes.
 vendor/ffmpeg/** -text
 vendor/uiohook/** -text
+native/capture/** -text

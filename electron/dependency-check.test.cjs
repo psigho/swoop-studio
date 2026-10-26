@@ -32,6 +32,10 @@ function fixture(extra = {}) {
       calls.push(["encoder", file, args]);
       return { stdout: "ffmpeg version bundled" };
     },
+    runCapture: async (file, args) => {
+      calls.push(["capture", file, args]);
+      return { stdout: "Windows Graphics Capture and D3D11 ready" };
+    },
     browserProbe: async () => ({
       width: 1920,
       height: 1080,
@@ -47,7 +51,7 @@ test("offline check validates exact shipped dependencies without starting pointe
   const env = fixture();
   const report = await checkDependencies(env.options);
   assert.equal(report.passed, true);
-  assert.equal(report.checks.length, 5);
+  assert.equal(report.checks.length, 6);
   assert.equal(env.starts(), 0);
   const native = env.calls.find((c) => c[0] === "native")[1];
   const encoders = env.calls.filter((c) => c[0] === "encoder");
@@ -85,6 +89,7 @@ test("unsupported Windows architecture or OS stops before loading dependencies",
     { platform: "linux" },
     { architecture: "ia32" },
     { release: "6.3.9600" },
+    { release: "10.0.18363" },
   ]) {
     const env = fixture(patch);
     const report = await checkDependencies(env.options);
@@ -124,6 +129,18 @@ test("missing bundled encoder never falls back to another encoder on PATH", asyn
   assert.equal(report.passed, false);
   assert.equal(report.failures[0].id, "encoder");
   assert.equal(env.calls.filter((c) => c[0] === "encoder").length, 0);
+});
+
+test("missing or broken Windows capture helper cannot pass setup", async () => {
+  for (const patch of [
+    { exists: (file) => !file.endsWith("SwoopCapture.exe") },
+    { runCapture: async () => { throw new Error("graphics unavailable"); } },
+    { runCapture: async () => ({ stdout: "unexpected helper" }) },
+  ]) {
+    const report = await checkDependencies(fixture(patch).options);
+    assert.equal(report.passed, false);
+    assert.equal(report.failures[0].id, "capture");
+  }
 });
 test("an encoder that starts but cannot encode is reported as a dependency failure", async () => {
   const env = fixture({

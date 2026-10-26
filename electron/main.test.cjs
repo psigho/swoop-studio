@@ -211,7 +211,7 @@ async function sandbox({ failHookStart = false } = {}) {
   });
   const source = fs.readFileSync(path.join(__dirname, "main.cjs"), "utf8");
   vm.runInContext(
-    `${source}\nmodule.exports = { isTrustedUrl, trustedEvent, saveVideo, saveProject, openProject, getSources, isSelfSource, setupMediaPermissions, confirmUnload, startPointerCapture, stopPointerCapture, bundledFfmpegPath, pausePointers(value) { pointerSession?.pause(value); }, setWindow(value) { mainWindow = value; } };`,
+    `${source}\nmodule.exports = { isTrustedUrl, trustedEvent, saveVideo, saveProject, openProject, getSources, isSelfSource, setupMediaPermissions, confirmUnload, startPointerCapture, stopPointerCapture, startCleanCapture, bundledFfmpegPath, pausePointers(value) { pointerSession?.pause(value); }, setWindow(value) { mainWindow = value; } };`,
     context,
   );
   return {
@@ -640,4 +640,15 @@ test("FFmpeg export produces a real H.264/AAC MP4 from a synthetic WebM", async 
   } finally {
     await env.cleanup();
   }
+});
+
+
+test("cursor-free capture requires a source accepted by the screen-sharing permission path", async (t) => {
+  const state = await sandbox();
+  t.after(() => fsp.rm(state.directory, { recursive: true, force: true }));
+  await assert.rejects(state.startCleanCapture("screen:1:0"), /Choose a screen or window/);
+  state.sourceFixtures.push({ id: "screen:1:0", name: "Owned test display", display_id: "1", thumbnail: { isEmpty: () => true } });
+  await state.getSources();
+  await assert.rejects(state.startCleanCapture("screen:1:0"), /Choose a screen or window/);
+  await assert.rejects(state.startCleanCapture("window:999:0"), /Choose a screen or window/);
 });
