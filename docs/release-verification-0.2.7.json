@@ -1,0 +1,128 @@
+{
+  "version": "0.2.7",
+  "verifiedOn": "2026-10-29",
+  "platform": "Windows x64",
+  "runtime": "Electron 44.9.3",
+  "unitTests": {
+    "rendererEngineProject": 55,
+    "native": 72,
+    "total": 127,
+    "failed": 0
+  },
+  "npmAuditVulnerabilities": 0,
+  "executedChecks": {
+    "installerPayload": 10,
+    "packagedDependency": 7,
+    "nsisPreflightHarness": 5,
+    "packagedEditorRecordingExport": 11,
+    "offlineDemo": 4,
+    "packagedRecovery": 7,
+    "packagedTypingAndOutputRecording": 4
+  },
+  "installer": {
+    "bytes": 122174188,
+    "sha256": "52070d2b5d89d6ad9b27e0bbf8ea85ce55f72c866813c1644b7b0b2938c08bed",
+    "unsigned": true
+  },
+  "systemHelper": {
+    "schemaVersion": 1,
+    "name": "SwoopSystem",
+    "version": "1.0",
+    "license": "MIT",
+    "platform": "win32-x64",
+    "minimumWindowsBuild": 19041,
+    "binary": {
+      "path": "win32-x64/SwoopSystem.exe",
+      "sha256": "f88d5d60b594e6d0e96d5da5cae6891fb4323214efab022b8cb166feba6eea1c"
+    },
+    "sources": [
+      {
+        "path": "system.cpp",
+        "sha256": "d718e2ea056c6e5c011fe95bbdcf35d72073c227900b2af288a225539147a2e1"
+      },
+      {
+        "path": "build.sh",
+        "sha256": "7ef66eae84a4233e9d749112ab0c6d8ccb7ea1c0e3740d011d191403784381ef"
+      },
+      {
+        "path": "README.md",
+        "sha256": "f12a8d5bfa97c69b1a3ea92beadbbcc910b67124db078dcf7fe092353bd5fbe9"
+      },
+      {
+        "path": "imports.txt",
+        "sha256": "37b09d067e2546eb7a3d1cd57e29adb7ca6ccd0418999531b3374a499251bbc5"
+      },
+      {
+        "path": "source.sha256",
+        "sha256": "ed1d14afb2dce14bc9585d4803aba1dae784cd9eb0f2fc678bec522cbb37e9ea"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "3453cc6ab8c1dc88131c7bfe6d1e7819c0e11edc7c1646b8bde91ff0a34b7167"
+      }
+    ],
+    "systemApis": [
+      "Windows Audio Session API (WASAPI)",
+      "Windows UI Automation"
+    ],
+    "compiler": "MSYS2 UCRT64 GCC 16.2.0; static C++ and GCC support runtimes",
+    "reproducesByteIdentically": false
+  },
+  "typingZoom": {
+    "nativeWindowsInput": "Computer Use keys through native uiohook, in an owned textarea",
+    "duration": 24.367299999952316,
+    "typingRegions": 1,
+    "projectMediaByteExact": true,
+    "rawTakeTypingByteExact": true,
+    "projectReopenAndExport": true,
+    "decodedFrameVisuallyReviewed": true,
+    "typedTextVisibleAtZoom": true,
+    "storedFields": [
+      "start",
+      "end",
+      "x",
+      "y"
+    ]
+  },
+  "systemOutput": {
+    "selectedNonDefaultEndpoint": true,
+    "changedWindowsDefault": false,
+    "ownedTonePresentInExport": {
+      "passed": true,
+      "testToneHz": 997,
+      "peakWindow": [
+        22.5,
+        0.014123495061651115
+      ],
+      "duration": 24.448
+    }
+  },
+  "cursorTracking": {
+    "pollTargetHz": 120,
+    "nativeMotionUpdates": true,
+    "fastInterpolationHasNoEasingDelay": true,
+    "humanManualLatencyComparison": false
+  },
+  "review": {
+    "completed": true,
+    "resolved": [
+      "Wide-field focus could crop typed content",
+      "Comma in recording audio codec MIME could corrupt portable media payload",
+      "Keyboard listener must require active cursor-free capture"
+    ],
+    "unresolvedMustFix": []
+  },
+  "notTested": [
+    "Full installer install/uninstall registration",
+    "Every audio endpoint, clean machine or Windows version",
+    "Power loss",
+    "Human manual comparison of fast mouse latency"
+  ],
+  "distribution": {
+    "sourceLicense": "MIT",
+    "thirdPartyLicensesSeparate": true,
+    "githubRepository": "https://github.com/psigho/swoop-studio",
+    "releaseTag": "v0.2.7",
+    "publicationEvidence": "This receipt records local verification. See GitHub for publication and asset digests."
+  }
+}

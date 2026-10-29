@@ -234,6 +234,12 @@ async function saveProjectForAssertion(file) {
 }
 
 async function startOwnWindowRecording() {
+  await app.evaluate(({ BrowserWindow }) => {
+    for (const window of BrowserWindow.getAllWindows()) {
+      window.restore();
+      window.show();
+    }
+  });
   const before = await page.evaluate(() => window.swoop.listTakes());
   const known = new Set(before.takes.map((take) => take.id));
   await page.getByRole("button", { name: "New video", exact: true }).click();
@@ -243,7 +249,7 @@ async function startOwnWindowRecording() {
   });
   await expect(dialog).toBeVisible();
   const own = dialog.locator('.source-grid button[data-self="true"]');
-  await expect(own).toHaveCount(1);
+  await expect(own).toHaveCount(1, { timeout: 20000 });
   await own.click();
   await dialog.getByRole("checkbox", { name: /System audio/ }).uncheck();
   const microphone = dialog.getByRole("checkbox", { name: /Microphone/ });

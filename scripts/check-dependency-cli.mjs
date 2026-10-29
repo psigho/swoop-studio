@@ -45,7 +45,7 @@ if (result.error || result.status !== 0) {
   throw result.error || new Error("Dependency CLI exit " + result.status);
 }
 const data = JSON.parse(await fs.readFile(report, "utf8"));
-if (!data.passed || data.checks.length !== 6)
+if (!data.passed || data.checks.length !== 7)
   throw new Error("Invalid successful report");
 await fs.writeFile(
   path.join(out, "cli-verification.json"),

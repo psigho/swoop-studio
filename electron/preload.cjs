@@ -13,21 +13,37 @@ contextBridge.exposeInMainWorld(
     ackCleanFrame: (id) => ipcRenderer.send("swoop:clean-ack", id),
     openSoundSettings: () => ipcRenderer.invoke("swoop:sound-settings"),
     onCleanFrame: (callback) => {
-      if (typeof callback !== "function") throw new TypeError("A frame callback is required.");
+      if (typeof callback !== "function")
+        throw new TypeError("A frame callback is required.");
       const listener = (_event, frame) => callback(frame);
       ipcRenderer.on("swoop:clean-frame", listener);
       return () => ipcRenderer.removeListener("swoop:clean-frame", listener);
     },
-    startPointerCapture: (id) => ipcRenderer.invoke("swoop:pointer-start", id),
+    getSystemOutputs: () => ipcRenderer.invoke("swoop:outputs"),
+    startSystemAudio: (id) => ipcRenderer.invoke("swoop:audio-start", id),
+    stopSystemAudio: (id) => ipcRenderer.invoke("swoop:audio-stop", id),
+    ackSystemAudio: (id) => ipcRenderer.send("swoop:audio-ack", id),
+    onSystemAudio: (callback) => {
+      if (typeof callback !== "function")
+        throw new TypeError("An audio callback is required.");
+      const listener = (_event, packet) => callback(packet);
+      ipcRenderer.on("swoop:audio-packet", listener);
+      return () => ipcRenderer.removeListener("swoop:audio-packet", listener);
+    },
+    startPointerCapture: (id, options) =>
+      ipcRenderer.invoke("swoop:pointer-start", id, options),
     pausePointerCapture: (paused) =>
       ipcRenderer.invoke("swoop:pointer-pause", paused),
     stopPointerCapture: () => ipcRenderer.invoke("swoop:pointer-stop"),
+    stopCaptureData: () => ipcRenderer.invoke("swoop:capture-data-stop"),
     saveVideo: (options) => ipcRenderer.invoke("swoop:save-video", options),
     saveProject: (data) => ipcRenderer.invoke("swoop:save-project", data),
     openProject: () => ipcRenderer.invoke("swoop:open-project"),
     beginTake: (details) => ipcRenderer.invoke("swoop:take-begin", details),
-    appendTakeChunk: (id, bytes) => ipcRenderer.invoke("swoop:take-append", id, bytes),
-    completeTake: (id, details) => ipcRenderer.invoke("swoop:take-complete", id, details),
+    appendTakeChunk: (id, bytes) =>
+      ipcRenderer.invoke("swoop:take-append", id, bytes),
+    completeTake: (id, details) =>
+      ipcRenderer.invoke("swoop:take-complete", id, details),
     interruptTake: (id) => ipcRenderer.invoke("swoop:take-interrupt", id),
     listTakes: () => ipcRenderer.invoke("swoop:take-list"),
     openTake: (id) => ipcRenderer.invoke("swoop:take-open", id),

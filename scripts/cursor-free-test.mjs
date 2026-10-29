@@ -150,9 +150,7 @@ try {
   await expect(page.getByLabel("Microphone input")).toBeEnabled();
   await page.getByLabel("Microphone input").selectOption("input-b");
   await page.getByLabel("Microphone channel").selectOption("right");
-  await expect(page.locator(".system-audio-source")).toContainText(
-    "Test default output",
-  );
+  await expect(page.locator(".system-audio-source")).toHaveCount(0);
   await page.screenshot({ path: path.join(out, "recording-setup.png") });
   await page.getByRole("checkbox", { name: /Minimize studio/ }).uncheck();
   await page

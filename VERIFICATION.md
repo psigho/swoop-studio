@@ -1,6 +1,17 @@
 # Verification receipt
 
-Executed locally on Windows x64 on 16 October 2026 (Asia/Karachi).
+Verification runs are dated below; current release checked on Windows x64 on 29 October 2026 (Asia/Karachi).
+
+## Release 0.2.7 — 29 October 2026
+
+Receipt: [docs/release-verification-0.2.7.json](docs/release-verification-0.2.7.json).
+
+- 127 unit tests pass, with zero npm audit vulnerabilities. Ten payload, seven dependency, five NSIS, eleven editor/capture/export, four offline demo and seven recording/recovery checks pass.
+- A packaged owned-window recording uses native Windows keyboard input through Computer Use, creates a typing zoom, preserves timing/focus metadata in the raw take, reopens a portable project and exports H.264/AAC. Decoded frames confirm the typed text remains visible in the zoom. No key codes or typed content are stored in activity metadata.
+- A quiet owned 997 Hz tone on a selected non-default output is present in the exported video. Windows defaults are unchanged. This checks that endpoint on this PC, not all possible devices.
+- Audio-recorded portable projects now contain the exact original video bytes even when MIME codec lists contain commas. The saved project is compared byte-for-byte with its raw take backup.
+- Fast cursor interpolation matches the recorded clock at every smoothing setting; capture polls at a 120 Hz target and also uses native movement events. Actual timer scheduling depends on Windows. A human manual comparison of fast-mouse latency remains for user testing.
+- Review resolved wide-field focus cropping, codec-comma project corruption, and keyboard listener activation outside an active screen capture. No unresolved must-fix findings remain in this review. Install/uninstall registration, clean-machine coverage and power-loss behavior are not claimed. The installer is unsigned.
 
 ## Release 0.2.6 — 26 October 2026
 

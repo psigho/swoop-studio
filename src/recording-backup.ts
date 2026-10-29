@@ -1,4 +1,4 @@
-import type { PointerSample } from "./studio";
+import type { PointerSample, TypingBurst } from "./studio";
 
 /** Keep individual IPC messages bounded even if MediaRecorder emits a large blob. */
 export const TAKE_IPC_CHUNK_BYTES = 4 * 1024 * 1024;
@@ -24,6 +24,7 @@ export type TakeBackupMetadata = {
 export type TakeBackupCompletion = {
   duration: number;
   pointers: PointerSample[];
+  typing?: TypingBurst[];
   warnings: string[];
 };
 

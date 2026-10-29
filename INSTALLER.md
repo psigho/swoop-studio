@@ -2,7 +2,7 @@
 
 Download the unsigned Windows x64 installer from the
 [GitHub release](https://github.com/psigho/swoop-studio/releases/latest).
-Version 0.2.6 supports Windows 10 version 2004 (build 19041) or later, or Windows 11, on Intel/AMD 64-bit PCs. ARM64 is
+Version 0.2.7 supports Windows 10 version 2004 (build 19041) or later, or Windows 11, on Intel/AMD 64-bit PCs. ARM64 is
 not supported. Building an installer from source does not install or publish it.
 
 Run `npm ci`, then `npm run installer`. The pinned `electron-builder` tool creates
@@ -54,7 +54,7 @@ The encoder's complete source archives are in `vendor/ffmpeg/source/`, its build
 recipe is `vendor/ffmpeg/build.sh`, and `vendor/ffmpeg/manifest.json` records
 SHA-256 checksums. License texts are in `vendor/ffmpeg/licenses/`. These materials
 are included in the repository and source archive, and are also provided in the
-release asset **Swoop-Studio-Encoder-Source-0.2.6.zip**. The installer includes the
+release asset **Swoop-Studio-Encoder-Source-0.2.7.zip**. The installer includes the
 encoder, notices and build metadata without duplicating the full source archives.
 Use this recipe and the exact source archives to rebuild the release encoder;
 a different system FFmpeg executable is not a substitute for the bundled release
@@ -68,7 +68,7 @@ upgrade, with Retry and Cancel options; it never forces the app to close.
 After extraction, before registering shortcuts or an uninstall entry, Setup
 starts the bundled app's headless `--check-dependencies` command. This checks
 the Electron files, loading the native pointer module, running the bundled FFmpeg
-encoder and decoding the included demo video in Chromium. It uses a temporary
+encoder, checking the Windows screen/audio/focus helpers, and decoding the included demo video in Chromium. It uses a temporary
 isolated profile, so it does not access your normal project session or start
 recording. The command must exit successfully and create a fresh, nonempty
 `dependency-report.json` in the installation folder. A missing component or a

@@ -1,4 +1,5 @@
-import type { PointerSample } from "./studio";
+import type { PointerSample, TypingBurst } from "./studio";
+import { selectedSystemAudio } from "./system-audio";
 import { cleanScreenTrack } from "./clean-capture";
 import {
   createRecordingBackup,
@@ -24,6 +25,8 @@ export type RecordingConfig = {
   microphoneDeviceId?: string;
   microphoneChannel?: "all" | "left" | "right";
   systemAudio: boolean;
+  systemOutputDeviceId?: string;
+  typingZoom?: boolean;
   onElapsed?: (seconds: number) => void;
   /** Called when the source ends or recording fails, so the UI can finish it. */
   onEnded?: () => void;
@@ -34,6 +37,7 @@ export type RecordingConfig = {
 export type RecordingResult = {
   blob: Blob;
   pointers: PointerSample[];
+  typing: TypingBurst[];
   duration: number;
   width: number;
   height: number;
@@ -105,6 +109,9 @@ export async function startRecording(
   let cleanupDone = false;
   let removeEnded: (() => void) | undefined;
   let cleanCapture: Awaited<ReturnType<typeof cleanScreenTrack>> | undefined;
+  let systemCapture:
+    Awaited<ReturnType<typeof selectedSystemAudio>> | undefined;
+  const nativeSystemAudio = !!native && config.systemAudio;
 
   const warn = (value: string) => {
     if (value && !warnings.includes(value)) warnings.push(value);
@@ -118,6 +125,7 @@ export async function startRecording(
     cleanupDone = true;
     if (elapsedTimer) clearInterval(elapsedTimer);
     removeEnded?.();
+    await systemCapture?.stop().catch(() => {});
     try {
       await cleanCapture?.stop();
     } catch {
@@ -153,7 +161,7 @@ export async function startRecording(
       display = own(
         await navigator.mediaDevices.getDisplayMedia({
           video: { frameRate: { ideal: 60 } },
-          audio: config.systemAudio,
+          audio: config.systemAudio && !nativeSystemAudio,
           // Chromium uses these as hints. Availability is checked on the returned tracks.
           ...({
             systemAudio: config.systemAudio ? "include" : "exclude",
@@ -198,7 +206,7 @@ export async function startRecording(
     const audioTracks: MediaStreamTrack[] = config.systemAudio
       ? display.getAudioTracks().filter((track) => track.readyState === "live")
       : [];
-    if (config.systemAudio && audioTracks.length === 0) {
+    if (config.systemAudio && !nativeSystemAudio && audioTracks.length === 0) {
       warn(
         "System audio was requested but this source did not provide it. Choose a full display or an audio-enabled browser tab to capture sound.",
       );
@@ -250,14 +258,27 @@ export async function startRecording(
     }
 
     const recordingStream = own(new MediaStream([videoTrack]));
-    if (audioTracks.length) {
+    if (audioTracks.length || nativeSystemAudio) {
       try {
-        audioContext = new AudioContext();
+        audioContext = new AudioContext({ sampleRate: 48000 });
         await audioContext.resume();
         if (audioContext.state !== "running")
           throw new Error("The audio mixer could not start.");
         const destination = audioContext.createMediaStreamDestination();
         own(destination.stream);
+        if (nativeSystemAudio) {
+          systemCapture = await selectedSystemAudio(
+            native!,
+            audioContext,
+            config.systemOutputDeviceId || "default",
+            (error) => {
+              warn(error);
+              videoTrack?.stop();
+              videoTrack?.dispatchEvent(new Event("ended"));
+            },
+          );
+          systemCapture.node.connect(destination);
+        }
         for (const track of audioTracks) {
           const node = audioContext.createMediaStreamSource(
             new MediaStream([track]),
@@ -295,10 +316,16 @@ export async function startRecording(
     let pointerStartedAt: number | undefined;
     if (native) {
       try {
-        const status = await native.startPointerCapture(config.sourceId);
+        const status = await native.startPointerCapture(config.sourceId, {
+          typingZoom: config.typingZoom ?? true,
+        });
         pointerCaptureStarted = status.pointerSupported;
         pointerStartedAt = status.startedAt;
         if (status.warning) warn(status.warning);
+        if (config.typingZoom !== false && !status.typingSupported)
+          warn(
+            "Typing zoom is unavailable for this take. Click zooms and manual zooms still work.",
+          );
         if (status.pointerSupported) {
           if (!status.clicksSupported)
             warn(
@@ -357,13 +384,14 @@ export async function startRecording(
       throw new Error(
         "The screen source ended before recording started. Choose New video to try again.",
       );
-    const mimeTypes = audioTracks.length
-      ? [
-          "video/webm;codecs=vp9,opus",
-          "video/webm;codecs=vp8,opus",
-          "video/webm",
-        ]
-      : ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+    const mimeTypes =
+      audioTracks.length || nativeSystemAudio
+        ? [
+            "video/webm;codecs=vp9,opus",
+            "video/webm;codecs=vp8,opus",
+            "video/webm",
+          ]
+        : ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
     const mimeType = mimeTypes.find((type) =>
       MediaRecorder.isTypeSupported(type),
     );
@@ -440,11 +468,20 @@ export async function startRecording(
         removeEnded?.();
         stopPromise = (async () => {
           let pointers: PointerSample[] = [];
+          let typing: TypingBurst[] = [];
           const finishPointers = (async () => {
             await pointerOperations;
             if (native && pointerCaptureStarted) {
               try {
-                const samples = await native.stopPointerCapture();
+                const captured = await native.stopCaptureData();
+                const samples = captured.pointers;
+                typing = captured.typing
+                  .map((b) => ({
+                    ...b,
+                    start: Math.max(0, b.start - pointerLead),
+                    end: Math.min(frozenDuration ?? 0, b.end - pointerLead),
+                  }))
+                  .filter((b) => b.end > b.start);
                 const valid = samples.filter(
                   (sample) =>
                     Number.isFinite(sample.t) &&
@@ -513,11 +550,13 @@ export async function startRecording(
             const backupPath = await backup?.complete({
               duration: frozenDuration ?? 0,
               pointers,
+              typing,
               warnings: [...warnings],
             });
             return {
               blob,
               pointers,
+              typing,
               duration: frozenDuration ?? 0,
               width: settings.width || 1920,
               height: settings.height || 1080,

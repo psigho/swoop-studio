@@ -18,6 +18,8 @@ const { execFile, spawn } = require("node:child_process");
 const { promisify } = require("node:util");
 const { randomUUID } = require("node:crypto");
 const { PointerSession } = require("./pointer-session.cjs");
+const { TypingSession } = require("./typing-session.cjs");
+const { SystemAudio } = require("./system-audio.cjs");
 const { resolveDataDirectory } = require("./data-path.cjs");
 const { TakeStore } = require("./take-store.cjs");
 const { CleanCapture } = require("./clean-capture.cjs");
@@ -61,6 +63,11 @@ let nativeHook = null;
 let nativeHookLoaded = false;
 let nativeClickListener = null;
 let nativeReleaseListener = null;
+let nativeMoveListener = null;
+let nativeKeyListener = null;
+let typingSession = null;
+let systemAudio = null;
+let outputInventory = new Set();
 let nativeHookRunning = false;
 let exporting = false;
 let encoderProcess = null;
@@ -71,42 +78,88 @@ let cleanCapture = null;
 let cleanSource = null;
 let acceptedSourceId = null;
 
+function systemExecutable() {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, "system", "win32-x64", "SwoopSystem.exe")
+    : path.join(ROOT, "native", "system", "win32-x64", "SwoopSystem.exe");
+}
+function stopSystemAudio() {
+  systemAudio?.stop();
+  systemAudio = null;
+}
+async function systemQuery(mode) {
+  const { stdout } = await runFile(systemExecutable(), [mode], {
+    windowsHide: true,
+    timeout: 2000,
+    maxBuffer: 128 * 1024,
+  });
+  return JSON.parse(stdout.trim());
+}
+
 function stopCleanCapture() {
+  stopSystemAudio();
   cleanCapture?.stop();
   cleanCapture = null;
   cleanSource = null;
 }
 
 async function startCleanCapture(sourceId) {
-  if (process.platform !== "win32" || sourceId !== acceptedSourceId || !sourceInventory.has(sourceId))
+  if (
+    process.platform !== "win32" ||
+    sourceId !== acceptedSourceId ||
+    !sourceInventory.has(sourceId)
+  )
     throw new Error("Choose a screen or window in recording setup first.");
   if (cleanCapture) throw new Error("A screen capture is already running.");
   const source = sourceInventory.get(sourceId);
   const target = {};
   if (sourceId.startsWith("screen:")) {
-    const display = screen.getAllDisplays().find((item) => String(item.id) === source.display_id);
-    if (!display) throw new Error("The selected display is no longer connected.");
+    const display = screen
+      .getAllDisplays()
+      .find((item) => String(item.id) === source.display_id);
+    if (!display)
+      throw new Error("The selected display is no longer connected.");
     target.bounds = screen.dipToScreenRect(null, display.bounds);
   } else {
     const match = /^window:(\d+):\d+$/.exec(sourceId);
     if (!match) throw new Error("The selected window is unavailable.");
     target.windowHandle = match[1];
     target.bounds = await getWindowBounds(sourceId);
-    if (!target.bounds) throw new Error("Restore the selected window before recording.");
+    if (!target.bounds)
+      throw new Error("Restore the selected window before recording.");
   }
   const executable = app.isPackaged
-    ? path.join(process.resourcesPath, "capture", "win32-x64", "SwoopCapture.exe")
+    ? path.join(
+        process.resourcesPath,
+        "capture",
+        "win32-x64",
+        "SwoopCapture.exe",
+      )
     : path.join(ROOT, "native", "capture", "win32-x64", "SwoopCapture.exe");
-  if (!fs.existsSync(executable)) throw new Error("The bundled screen recorder is unavailable. Reinstall Swoop Studio.");
+  if (!fs.existsSync(executable))
+    throw new Error(
+      "The bundled screen recorder is unavailable. Reinstall Swoop Studio.",
+    );
   // Recheck after asynchronous source lookup; concurrent starts cannot create two captures.
-  if (cleanCapture || acceptedSourceId !== sourceId) throw new Error("Recording setup changed. Choose your source again.");
-  const capture = new CleanCapture({ executable, target, onFrame: (frame) => {
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("swoop:clean-frame", frame);
-  } });
+  if (cleanCapture || acceptedSourceId !== sourceId)
+    throw new Error("Recording setup changed. Choose your source again.");
+  const capture = new CleanCapture({
+    executable,
+    target,
+    onFrame: (frame) => {
+      if (mainWindow && !mainWindow.isDestroyed())
+        mainWindow.webContents.send("swoop:clean-frame", frame);
+    },
+  });
   cleanCapture = capture;
   cleanSource = { id: sourceId, bounds: target.bounds };
-  try { await capture.ready; return { id: capture.id }; }
-  catch (error) { if (cleanCapture === capture) stopCleanCapture(); throw error; }
+  try {
+    await capture.ready;
+    return { id: capture.id };
+  } catch (error) {
+    if (cleanCapture === capture) stopCleanCapture();
+    throw error;
+  }
 }
 
 function recordings() {
@@ -258,7 +311,9 @@ function getNativeHook() {
   return nativeHook;
 }
 
-function stopPointerCapture() {
+function stopCaptureData() {
+  const typing = typingSession?.stop() ?? [];
+  typingSession = null;
   const points = pointerSession ? pointerSession.stop() : [];
   pointerSession = null;
   if (nativeHook && nativeClickListener)
@@ -267,6 +322,12 @@ function stopPointerCapture() {
     nativeHook.off("mouseup", nativeReleaseListener);
   nativeClickListener = null;
   nativeReleaseListener = null;
+  if (nativeHook && nativeMoveListener)
+    nativeHook.off("mousemove", nativeMoveListener);
+  if (nativeHook && nativeKeyListener)
+    nativeHook.off("keydown", nativeKeyListener);
+  nativeMoveListener = null;
+  nativeKeyListener = null;
   if (nativeHook && nativeHookRunning) {
     try {
       nativeHook.stop();
@@ -275,7 +336,10 @@ function stopPointerCapture() {
     }
   }
   nativeHookRunning = false;
-  return points;
+  return { pointers: points, typing };
+}
+function stopPointerCapture() {
+  return stopCaptureData().pointers;
 }
 
 async function getWindowBounds(sourceId) {
@@ -331,7 +395,14 @@ if ($status -ne 0) { [SwoopWindowRect]::GetWindowRect($handle, [ref]$rect) | Out
   return physical;
 }
 
-async function startPointerCapture(sourceId) {
+async function startPointerCapture(sourceId, options = {}) {
+  if (
+    !options ||
+    typeof options !== "object" ||
+    (options.typingZoom !== undefined &&
+      typeof options.typingZoom !== "boolean")
+  )
+    throw new Error("Invalid typing zoom option.");
   sourceId = sourceId || selectedSourceId;
   if (typeof sourceId !== "string" || !sourceInventory.has(sourceId))
     throw new Error("Choose a screen or window first.");
@@ -346,7 +417,8 @@ async function startPointerCapture(sourceId) {
     coordinateSpace = "physical";
     if (sourceId.startsWith("window:")) {
       scope = "window-initial-bounds";
-      warning = "Keep the recorded window visible, in the same position and size for accurate cursor effects.";
+      warning =
+        "Keep the recorded window visible, in the same position and size for accurate cursor effects.";
     }
   } else if (sourceId.startsWith("screen:")) {
     const displays = screen.getAllDisplays();
@@ -390,10 +462,72 @@ async function startPointerCapture(sourceId) {
   const hook = getNativeHook();
   if (hook) {
     try {
-      nativeClickListener = (event) =>
+      nativeClickListener = (event) => {
+        typingSession?.pause();
         pointerSession?.sample("down", event.button);
+      };
       nativeReleaseListener = (event) =>
         pointerSession?.sample("up", event.button);
+      nativeMoveListener = () => {
+        if (
+          pointerSession &&
+          pointerSession.elapsed() - (pointerSession.points.at(-1)?.t ?? 0) >=
+            0.004
+        )
+          pointerSession.sample();
+      };
+      hook.on("mousemove", nativeMoveListener);
+      if (options.typingZoom && cleanSource?.id === sourceId) {
+        const { UiohookKey } = require("uiohook-napi");
+        const names = [
+          ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+          "Space",
+          "Backspace",
+          "Enter",
+          "Delete",
+          "Semicolon",
+          "Equal",
+          "Comma",
+          "Minus",
+          "Period",
+          "Slash",
+          "Backquote",
+          "BracketLeft",
+          "Backslash",
+          "BracketRight",
+          "Quote",
+        ];
+        const keys = new Set(
+          names.map((name) => UiohookKey[name]).filter(Number.isInteger),
+        );
+        typingSession = new TypingSession({
+          clock: pointerSession,
+          bounds,
+          windowHandle: /^window:(\d+):/.exec(sourceId)?.[1],
+          getFocus: async () => {
+            const focus = await systemQuery("--focus");
+            focus.inBounds =
+              focus.windowX >= bounds.x &&
+              focus.windowX <= bounds.x + bounds.width &&
+              focus.windowY >= bounds.y &&
+              focus.windowY <= bounds.y + bounds.height;
+            return focus;
+          },
+          getFallback: () => {
+            const click = pointerSession?.points.findLast(
+              (p) => p.click && p.visible,
+            );
+            return click ?? { x: 0.5, y: 0.5, visible: false };
+          },
+          isTypingKey: (event) =>
+            !event.ctrlKey &&
+            !event.altKey &&
+            !event.metaKey &&
+            keys.has(event.keycode),
+        });
+        nativeKeyListener = (event) => typingSession?.key(event);
+        hook.on("keydown", nativeKeyListener);
+      }
       hook.on("mousedown", nativeClickListener);
       hook.on("mouseup", nativeReleaseListener);
       hook.start();
@@ -405,6 +539,12 @@ async function startPointerCapture(sourceId) {
       if (nativeReleaseListener) hook.off("mouseup", nativeReleaseListener);
       nativeClickListener = null;
       nativeReleaseListener = null;
+      if (nativeMoveListener) hook.off("mousemove", nativeMoveListener);
+      if (nativeKeyListener) hook.off("keydown", nativeKeyListener);
+      nativeMoveListener = null;
+      nativeKeyListener = null;
+      typingSession?.stop();
+      typingSession = null;
       try {
         hook.stop();
       } catch {
@@ -416,6 +556,7 @@ async function startPointerCapture(sourceId) {
   log(`Pointer capture started: ${scope}, native clicks=${clicksSupported}`);
   return {
     clicksSupported,
+    typingSupported: !!typingSession,
     pointerSupported: true,
     scope,
     bounds: { ...bounds },
@@ -739,12 +880,20 @@ async function openProject() {
 
 function setupIpc() {
   handle("swoop:clean-start", (_event, id) => startCleanCapture(id));
-  handle("swoop:clean-stop", (_event, id) => { if (cleanCapture?.id === id) stopCleanCapture(); });
+  handle("swoop:clean-stop", (_event, id) => {
+    if (cleanCapture?.id === id) stopCleanCapture();
+  });
   ipcMain.on("swoop:clean-ack", (event, id) => {
-    try { trustedEvent(event); cleanCapture?.acknowledge(id); } catch { /* Ignore untrusted senders. */ }
+    try {
+      trustedEvent(event);
+      cleanCapture?.acknowledge(id);
+    } catch {
+      /* Ignore untrusted senders. */
+    }
   });
   handle("swoop:sound-settings", async () => {
-    if (process.platform === "win32") await shell.openExternal("ms-settings:sound");
+    if (process.platform === "win32")
+      await shell.openExternal("ms-settings:sound");
   });
   handle("swoop:get-sources", () => getSources());
   handle("swoop:select-source", (_event, id) => {
@@ -753,14 +902,51 @@ function setupIpc() {
     capturePermitExpires = Date.now() + 120000;
     return true;
   });
-  handle("swoop:pointer-start", (_event, id) => startPointerCapture(id));
+  handle("swoop:outputs", async () => {
+    const devices = await systemQuery("--outputs");
+    outputInventory = new Set(devices.map((device) => device.id));
+    return devices;
+  });
+  handle("swoop:audio-start", async (_event, deviceId) => {
+    if (!cleanCapture || systemAudio)
+      throw new Error("Start a screen recording before system audio.");
+    if (deviceId !== "default" && !outputInventory.has(deviceId))
+      throw new Error("Choose an available system output device first.");
+    const capture = new SystemAudio({
+      executable: systemExecutable(),
+      deviceId,
+      onPacket: (packet) => {
+        if (mainWindow && !mainWindow.isDestroyed())
+          mainWindow.webContents.send("swoop:audio-packet", packet);
+      },
+    });
+    systemAudio = capture;
+    try {
+      return await capture.ready;
+    } catch (error) {
+      if (systemAudio === capture) stopSystemAudio();
+      throw error;
+    }
+  });
+  handle("swoop:audio-stop", (_event, id) => {
+    if (systemAudio?.id === id) stopSystemAudio();
+  });
+  ipcMain.on("swoop:audio-ack", (event, id) => {
+    if (event.sender === mainWindow?.webContents && systemAudio?.id === id)
+      systemAudio.ack();
+  });
+  handle("swoop:pointer-start", (_event, id, options) =>
+    startPointerCapture(id, options),
+  );
   handle("swoop:pointer-pause", (_event, paused) => {
     if (typeof paused !== "boolean")
       throw new Error("Paused must be true or false.");
     pointerSession?.pause(paused);
+    if (paused) typingSession?.pause();
     return true;
   });
   handle("swoop:pointer-stop", () => stopPointerCapture());
+  handle("swoop:capture-data-stop", () => stopCaptureData());
   handle("swoop:save-video", (_event, options) => saveVideo(options));
   handle("swoop:save-project", (_event, data) => saveProject(data));
   handle("swoop:open-project", () => openProject());
@@ -880,6 +1066,7 @@ function confirmUnload(event) {
   });
   if (response === 1) {
     quitApproved = true;
+    stopCleanCapture();
     stopPointerCapture();
     encoderProcess?.kill();
     // Electron uses preventDefault here to override the renderer's beforeunload
@@ -930,7 +1117,8 @@ function createWindow() {
     log(`Renderer process exited: ${details.reason}`);
   });
   mainWindow.on("close", (event) => {
-    if (quitApproved || (!pointerSession && !cleanCapture && !exporting)) return;
+    if (quitApproved || (!pointerSession && !cleanCapture && !exporting))
+      return;
     event.preventDefault();
     dialog
       .showMessageBox(mainWindow, {

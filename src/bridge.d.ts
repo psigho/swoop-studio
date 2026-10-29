@@ -1,9 +1,10 @@
-import type { PointerSample } from "./studio";
+import type { PointerSample, TypingBurst } from "./studio";
 import type { NativeSource } from "./recording";
 
 export type PointerCaptureStatus = {
   clicksSupported: boolean;
   pointerSupported: boolean;
+  typingSupported?: boolean;
   scope: "display" | "window-initial-bounds" | "unavailable";
   bounds?: { x: number; y: number; width: number; height: number };
   warning: string;
@@ -52,9 +53,31 @@ export interface SwoopBridge {
     }) => void,
   ): () => void;
   openSoundSettings(): Promise<void>;
-  startPointerCapture(id?: string): Promise<PointerCaptureStatus>;
+  getSystemOutputs(): Promise<
+    { id: string; name: string; isDefault: boolean }[]
+  >;
+  startSystemAudio(
+    id: string,
+  ): Promise<{ id: string; sampleRate: number; channels: number }>;
+  stopSystemAudio(id: string): Promise<void>;
+  ackSystemAudio(id: string): void;
+  onSystemAudio(
+    callback: (packet: {
+      id: string;
+      bytes?: Uint8Array;
+      error?: string;
+    }) => void,
+  ): () => void;
+  startPointerCapture(
+    id?: string,
+    options?: { typingZoom?: boolean },
+  ): Promise<PointerCaptureStatus>;
   pausePointerCapture(paused: boolean): Promise<boolean>;
   stopPointerCapture(): Promise<PointerSample[]>;
+  stopCaptureData(): Promise<{
+    pointers: PointerSample[];
+    typing: TypingBurst[];
+  }>;
   saveVideo(options: {
     bytes: ArrayBuffer | Uint8Array;
     name: string;
@@ -74,6 +97,7 @@ export interface SwoopBridge {
     details: {
       duration: number;
       pointers: PointerSample[];
+      typing?: TypingBurst[];
       warnings: string[];
     },
   ): Promise<void>;
@@ -83,6 +107,7 @@ export interface SwoopBridge {
     take: SavedTake;
     bytes: Uint8Array;
     pointers: PointerSample[];
+    typing?: TypingBurst[];
     mimeType: string;
   }>;
   showTakesFolder(): Promise<void>;

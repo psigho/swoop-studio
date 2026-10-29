@@ -6,7 +6,7 @@ A local Windows screen recorder and editor with animated cursors, click and drag
 
 ## Install
 
-Download **Swoop-Studio-Setup-0.2.6-x64.exe** from the GitHub release, run Setup, then open **Swoop Studio** from the Start menu or Desktop shortcut. Supported platform: **Windows 10 version 2004 (build 19041) or later, or Windows 11, on an Intel/AMD 64-bit PC**. ARM64, macOS and Linux builds are not provided.
+Download **Swoop-Studio-Setup-0.2.7-x64.exe** from the GitHub release, run Setup, then open **Swoop Studio** from the Start menu or Desktop shortcut. Supported platform: **Windows 10 version 2004 (build 19041) or later, or Windows 11, on an Intel/AMD 64-bit PC**. ARM64, macOS and Linux builds are not provided.
 
 The installer includes the app runtime, native pointer capture, local MP4 encoder and an offline demo. You do not need Node.js, npm or a separate FFmpeg installation. Setup checks the operating system, installation folder and bundled components before completing. The installer is unsigned, so Windows may show an unrecognized-publisher prompt.
 
@@ -14,9 +14,9 @@ The app works offline. **Help → Watch included demo** plays an original sample
 
 ## Record and edit
 
-1. Choose **New video**, select a screen or window, and choose microphone/system audio. Turn Microphone on to choose its input by name and select all, left or right channels.
+1. Choose **New video**, select a screen or window, and choose microphone/system audio. Turn Microphone on to choose its input by name and select all, left or right channels. Choose a specific system sound output without changing your Windows default. Enable Zoom while typing to focus the camera on a text field.
 2. Record after the countdown. Restore the studio to pause or finish. **Escape** finishes a take while the studio has focus; it is not a system-wide hotkey.
-3. Adjust the frame, cursor effects and zoom moments in the editor. Recorded clicks can create automatic zooms.
+3. Adjust the frame, cursor effects and zoom moments in the editor. Recorded clicks and typing activity can create automatic zooms.
 4. **Save project** to preserve your edit, or **Export** to create a WebM or H.264 MP4 video.
 
 Each project edits one source clip. It includes:
@@ -24,7 +24,7 @@ Each project edits one source clip. It includes:
 - Four looks: Flow, Punch, Daydream and Focus.
 - Nine cursor shapes, with adjustable color and size.
 - Ribbon, Comet and Ghost trails; Ripple, Pulse, Burst and Ring click effects; Elastic, Path and Selection drag effects.
-- Editable zoom timing and focus, three motion styles and three entrance animations.
+- Editable zoom timing and focus, optional typing zoom, three motion styles and three entrance animations.
 - Backgrounds, aspect ratios, padding, rounded corners, window chrome, shadow and grain.
 - Trim controls and WebM/MP4 export at 720, 1080 or 1440 short-edge quality, with source audio.
 
@@ -44,7 +44,7 @@ A forced close or capture/write failure can leave an interrupted take. Only vide
 
 - Windows recording captures pixels without the Windows cursor, then adds the editable Swoop cursor. Older recordings and imported videos retain their original pixels; a cursor already baked into them cannot be removed.
 - Window pointer tracking uses the window's position and size at the start of capture. Keep the selected window visible and stationary during a take. Windows excludes protected content. Closing, minimizing or resizing the selected window stops the take and keeps its backup.
-- Windows system audio records the default playback device, which can include other applications. Recording setup shows that source and opens Windows sound settings to change it before recording; arbitrary per-app/output routing is not provided.
+- Windows system audio records the selected playback device, including any applications using it. Choose the output in recording setup; per-application isolation is not provided.
 - This release has no multi-clip assembly, webcam track, transcription or cloud sharing.
 - Hardware coverage and long, multi-hour recording tests are limited. See [verification scope](VERIFICATION.md) for executed checks; these do not establish support for every capture device or Windows configuration.
 

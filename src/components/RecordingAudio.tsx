@@ -8,25 +8,36 @@ export default function RecordingAudio({
   channel,
   onDevice,
   onChannel,
+  systemEnabled,
+  outputDeviceId,
+  onOutputDevice,
 }: {
   enabled: boolean;
   deviceId: string;
   channel: MicrophoneChannel;
   onDevice: (id: string) => void;
   onChannel: (channel: MicrophoneChannel) => void;
+  systemEnabled: boolean;
+  outputDeviceId: string;
+  onOutputDevice: (id: string) => void;
 }) {
   const [inputs, setInputs] = useState<MediaDeviceInfo[]>([]);
-  const [output, setOutput] = useState("Windows default speakers / headphones");
+  const [outputs, setOutputs] = useState<
+    { id: string; name: string; isDefault: boolean }[]
+  >([]);
+  const [outputError, setOutputError] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const refresh = useCallback(async () => {
     const devices = await navigator.mediaDevices.enumerateDevices();
     setInputs(devices.filter((device) => device.kind === "audioinput"));
-    const playback = devices.find(
-      (device) =>
-        device.kind === "audiooutput" && device.deviceId === "default",
-    );
-    setOutput(playback?.label || "Windows default speakers / headphones");
+    if (window.swoop)
+      try {
+        setOutputs(await window.swoop.getSystemOutputs());
+        setOutputError("");
+      } catch (error) {
+        setOutputError(`Could not list system outputs: ${String(error)}`);
+      }
   }, []);
   useEffect(() => {
     let cancelled = false;
@@ -124,25 +135,47 @@ export default function RecordingAudio({
           )}
         </>
       )}
-      {window.swoop && (
+      {window.swoop && systemEnabled && (
         <div className="system-audio-source">
-          <span>
-            System sound source<strong>{output}</strong>
+          <label>
+            System sound output
+            <select
+              aria-label="System sound output"
+              value={outputDeviceId}
+              onChange={(e) => onOutputDevice(e.target.value)}
+            >
+              <option value="default">
+                Windows default
+                {outputs.find((o) => o.isDefault)
+                  ? ` · ${outputs.find((o) => o.isDefault)!.name}`
+                  : ""}
+              </option>
+              {outputDeviceId !== "default" &&
+                !outputs.some((o) => o.id === outputDeviceId) && (
+                  <option value={outputDeviceId}>
+                    Selected output — disconnected
+                  </option>
+                )}
+              {outputs.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
             <small>
-              Records sounds played through the Windows default output. Change
-              that output in Windows before recording.
+              Records sound playing through this device. Your Windows default
+              stays unchanged.
             </small>
-          </span>
+            {outputError && <small role="alert">{outputError}</small>}
+          </label>
           <button
             className="button"
             type="button"
             onClick={() =>
-              void window
-                .swoop!.openSoundSettings()
-                .catch((error) => setError(String(error)))
+              void refresh().catch((error) => setOutputError(String(error)))
             }
           >
-            Sound settings
+            Refresh devices
           </button>
         </div>
       )}

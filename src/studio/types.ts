@@ -8,6 +8,7 @@ export type PointerSample = {
   pressed?: boolean;
   button?: number;
 };
+export type TypingBurst = { start: number; end: number; x: number; y: number };
 export type ZoomRegion = {
   id: string;
   start: number;

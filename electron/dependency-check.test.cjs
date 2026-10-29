@@ -36,6 +36,10 @@ function fixture(extra = {}) {
       calls.push(["capture", file, args]);
       return { stdout: "Windows Graphics Capture and D3D11 ready" };
     },
+    runSystem: async (file, args) => {
+      calls.push(["system", file, args]);
+      return { stdout: '{"ok":true}' };
+    },
     browserProbe: async () => ({
       width: 1920,
       height: 1080,
@@ -51,7 +55,7 @@ test("offline check validates exact shipped dependencies without starting pointe
   const env = fixture();
   const report = await checkDependencies(env.options);
   assert.equal(report.passed, true);
-  assert.equal(report.checks.length, 6);
+  assert.equal(report.checks.length, 7);
   assert.equal(env.starts(), 0);
   const native = env.calls.find((c) => c[0] === "native")[1];
   const encoders = env.calls.filter((c) => c[0] === "encoder");
@@ -63,6 +67,13 @@ test("offline check validates exact shipped dependencies without starting pointe
     ),
   );
 });
+test("a missing system helper fails setup with repair guidance", async () => {
+  const env = fixture({ exists: (file) => !file.endsWith("SwoopSystem.exe") });
+  const report = await checkDependencies(env.options);
+  assert.equal(report.passed, false);
+  assert.equal(report.failures[0].id, "system");
+});
+
 test("source checkout checks the reviewed vendor encoder rather than a package loader", async () => {
   const applicationRoot = "K:\\App\\source";
   const env = fixture({ applicationRoot });
@@ -134,7 +145,11 @@ test("missing bundled encoder never falls back to another encoder on PATH", asyn
 test("missing or broken Windows capture helper cannot pass setup", async () => {
   for (const patch of [
     { exists: (file) => !file.endsWith("SwoopCapture.exe") },
-    { runCapture: async () => { throw new Error("graphics unavailable"); } },
+    {
+      runCapture: async () => {
+        throw new Error("graphics unavailable");
+      },
+    },
     { runCapture: async () => ({ stdout: "unexpected helper" }) },
   ]) {
     const report = await checkDependencies(fixture(patch).options);

@@ -73,3 +73,7 @@ own export; it contains no Cursorful media or binaries.
 Third-party free software is provided without warranty, subject to its included
 license terms. Source bundles and checksums are available with the installer at
 [the public releases](https://github.com/psigho/swoop-studio/releases).
+
+## Original Windows audio/focus helper
+
+`native/system` is original Swoop Studio source under MIT. The complete source, build recipe, license and binary hash accompany the installed helper in `resources/system`. It uses Windows WASAPI and UI Automation system APIs. No separate system helper runtime is required.

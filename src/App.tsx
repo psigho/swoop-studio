@@ -54,6 +54,7 @@ import {
   renderFrame,
   sourcePointAt,
   type PointerSample,
+  type TypingBurst,
   type StudioSettings,
   type ZoomRegion,
 } from "./studio";
@@ -62,7 +63,7 @@ import {
   type NativeSource,
   type RecordingSession,
 } from "./recording";
-import { parseProject } from "./project";
+import { parseProject, embeddedBase64 } from "./project";
 import type { SavedTake } from "./bridge";
 import RecordingsDialog from "./components/RecordingsDialog";
 import RecordingAudio, {
@@ -319,6 +320,9 @@ export default function App() {
   const [sourceBlob, setSourceBlob] = useState<Blob>();
   const [duration, setDuration] = useState(DEMO_DURATION);
   const [pointers, setPointers] = useState<PointerSample[]>(DEMO_POINTERS);
+  const [typing, setTyping] = useState<TypingBurst[]>([]);
+  const [typingZoom, setTypingZoom] = useState(true);
+  const [systemOutputDeviceId, setSystemOutputDeviceId] = useState("default");
   const [time, setTime] = useState(3.2);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -694,6 +698,7 @@ export default function App() {
     title: string,
     knownDuration?: number,
     newPointers: PointerSample[] = [],
+    newTyping: TypingBurst[] = [],
   ) {
     setPlaying(false);
     const url = URL.createObjectURL(blob);
@@ -745,6 +750,7 @@ export default function App() {
       setName(title.replace(/\.[^.]+$/, ""));
       setDuration(len);
       setPointers(newPointers);
+      setTyping(newTyping);
       setTime(0);
       setSelected(null);
       history.current = [];
@@ -753,7 +759,7 @@ export default function App() {
         ...e,
         trimStart: 0,
         trimEnd: len,
-        zooms: autoZoom(newPointers, len),
+        zooms: autoZoom(newPointers, len, newTyping),
       }));
       setDirty(true);
       notify("Your clip is ready. Make it move.");
@@ -820,6 +826,8 @@ export default function App() {
         sourceId: native ? selectedSource : undefined,
         microphone,
         microphoneDeviceId,
+        systemOutputDeviceId,
+        typingZoom,
         microphoneChannel,
         systemAudio,
         onElapsed: setRecordTime,
@@ -861,6 +869,7 @@ export default function App() {
         `Take ${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }).replace(":", "-")}`,
         result.duration,
         result.pointers,
+        result.typing,
       );
       if (result.backupPath) {
         setBackupStatus({ state: "saved", path: result.backupPath });
@@ -971,6 +980,7 @@ export default function App() {
     setSourceBlob(undefined);
     setSourceUrl(undefined);
     setIsDemo(true);
+    setTyping([]);
     setDuration(DEMO_DURATION);
     setPointers(DEMO_POINTERS);
     setTime(3.2);
@@ -996,6 +1006,7 @@ export default function App() {
       duration,
       pointers,
       ...structuredClone(edit),
+      typing,
     };
     const media = sourceBlob;
     try {
@@ -1006,7 +1017,13 @@ export default function App() {
       const mediaBase64 = media
         ? await new Promise<string>((resolve, reject) => {
             const r = new FileReader();
-            r.onload = () => resolve((r.result as string).split(",")[1]);
+            r.onload = () => {
+              try {
+                resolve(embeddedBase64(r.result as string));
+              } catch (error) {
+                reject(error);
+              }
+            };
             r.onerror = () => reject(new Error("Could not read recording"));
             r.readAsDataURL(media);
           })
@@ -1056,6 +1073,7 @@ export default function App() {
           p.name,
           Number(p.duration),
           safePointers,
+          p.typing,
         );
       } else {
         setSourceBlob(undefined);
@@ -1063,6 +1081,7 @@ export default function App() {
         setIsDemo(true);
         setDuration(Number(p.duration));
         setPointers(safePointers);
+        setTyping(p.typing ?? []);
       }
       const start = p.trimStart,
         end = p.trimEnd;
@@ -1145,6 +1164,7 @@ export default function App() {
         result.take.name,
         result.take.duration,
         result.pointers,
+        result.typing,
       );
       setName(result.take.name);
       setBackupStatus({
@@ -1764,14 +1784,14 @@ export default function App() {
               <button
                 className="text-tool auto-zoom"
                 onClick={() => {
-                  if (!pointers.some((p) => p.click)) {
+                  if (!pointers.some((p) => p.click) && !typing.length) {
                     notify(
-                      "Add manual zooms for imported video. Automatic zooms use recorded clicks.",
+                      "Add manual zooms for imported video. Automatic zooms use recorded clicks and typing.",
                     );
                     return;
                   }
-                  updateEdit({ zooms: autoZoom(pointers, duration) });
-                  notify("Zooms built from your clicks.");
+                  updateEdit({ zooms: autoZoom(pointers, duration, typing) });
+                  notify("Zooms built from your clicks and typing.");
                 }}
               >
                 <WandSparkles size={13} />
@@ -2587,7 +2607,7 @@ export default function App() {
             <Clapperboard size={11} />
             Load playground
           </button>
-          <span>v{appInfo?.version ?? "0.2.6"}</span>
+          <span>v{appInfo?.version ?? "0.2.7"}</span>
         </div>
       </footer>
       <input
@@ -2721,7 +2741,7 @@ export default function App() {
                 label="System audio"
                 description={
                   native
-                    ? "Records the Windows default speakers or headphones."
+                    ? "Record the speakers or headphones you choose below."
                     : "Where supported by your selected source."
                 }
                 value={systemAudio}
@@ -2741,7 +2761,20 @@ export default function App() {
                   />
                 ))}
             </div>
+            {native && (
+              <div className="record-options">
+                <Toggle
+                  label="Zoom while typing"
+                  description="Focus on your text field. Saves timing and position only, never keys or text."
+                  value={typingZoom}
+                  onChange={setTypingZoom}
+                />
+              </div>
+            )}
             <RecordingAudio
+              systemEnabled={systemAudio}
+              outputDeviceId={systemOutputDeviceId}
+              onOutputDevice={setSystemOutputDeviceId}
               enabled={microphone}
               deviceId={microphoneDeviceId}
               channel={microphoneChannel}

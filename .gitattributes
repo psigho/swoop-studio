@@ -11,3 +11,4 @@
 vendor/ffmpeg/** -text
 vendor/uiohook/** -text
 native/capture/** -text
+native/system/** -text

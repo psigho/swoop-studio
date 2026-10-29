@@ -8,8 +8,8 @@ class PointerSession {
     bounds,
     getPoint,
     now = () => performance.now(),
-    period = 1000 / 30,
-    maxSamples = 648000,
+    period = 1000 / 120,
+    maxSamples = 1_900_000,
   }) {
     if (!bounds || bounds.width <= 0 || bounds.height <= 0)
       throw new Error("Invalid capture bounds.");
@@ -33,6 +33,14 @@ class PointerSession {
     this.timer = setInterval(() => this.sample(), this.period);
     this.timer.unref?.();
     return this;
+  }
+
+  elapsed() {
+    return Math.max(
+      0,
+      ((this.pausedAt ?? this.now()) - this.started - this.pausedDuration) /
+        1000,
+    );
   }
 
   sample(event = "move", button) {
@@ -69,11 +77,7 @@ class PointerSession {
     const py = (point.y - y) / height;
     if (!Number.isFinite(px) || !Number.isFinite(py)) return;
     const sample = {
-      t: Math.max(
-        0,
-        Math.round((this.now() - this.started - this.pausedDuration) * 10) /
-          10000,
-      ),
+      t: Math.round(this.elapsed() * 10000) / 10000,
       x: Math.round(Math.max(0, Math.min(1, px)) * 1000000) / 1000000,
       y: Math.round(Math.max(0, Math.min(1, py)) * 1000000) / 1000000,
       visible: px >= 0 && px <= 1 && py >= 0 && py <= 1,
@@ -86,6 +90,28 @@ class PointerSession {
     if (Number.isInteger(activeButton)) sample.button = activeButton;
     if (event === "down") {
       sample.click = true;
+    }
+    const previous = this.points.at(-1);
+    // Stationary holds need only their endpoints. Leave room for hours of motion.
+    if (
+      event === "move" &&
+      previous?.event === "move" &&
+      this.points.length > 1
+    ) {
+      const before = this.points.at(-2);
+      if (
+        previous.x === sample.x &&
+        previous.y === sample.y &&
+        previous.visible === sample.visible &&
+        before.x === sample.x &&
+        before.y === sample.y &&
+        before.visible === sample.visible &&
+        previous.pressed === sample.pressed &&
+        before.pressed === sample.pressed
+      ) {
+        this.points[this.points.length - 1] = sample;
+        return;
+      }
     }
     if (terminal && this.points.length >= this.maxSamples)
       this.points[this.points.length - 1] = sample;

@@ -1,4 +1,9 @@
-import type { PointerSample, StudioSettings, ZoomRegion } from "./types";
+import type {
+  PointerSample,
+  StudioSettings,
+  ZoomRegion,
+  TypingBurst,
+} from "./types";
 
 export const clamp = (n: number, low = 0, high = 1) =>
   Math.min(high, Math.max(low, n));
@@ -41,7 +46,13 @@ export function samplePointer(
   const linear = clamp((time - a.t) / Math.max(0.001, b.t - a.t));
   // Densely sampled native pointer movement is already smooth. Ease only gaps
   // large enough to represent an intentional movement rather than every poll.
-  const strength = clamp(smoothing / 100) * clamp((b.t - a.t) / 0.18);
+  // Keep the cursor head on the captured clock. Easing between fast samples
+  // makes it visibly fall behind; reserve easing for slow, sparse movements.
+  const speed = Math.hypot(b.x - a.x, b.y - a.y) / Math.max(0.001, b.t - a.t);
+  const strength =
+    clamp(smoothing / 100) *
+    clamp((b.t - a.t - 1 / 30) / 0.18) *
+    (1 - clamp(speed / 0.5));
   const p = lerp(linear, smoothstep(linear), strength);
   return {
     t: time,
@@ -83,6 +94,7 @@ export function cameraAt(
 export function autoZoom(
   pointers: PointerSample[],
   duration: number,
+  typing: TypingBurst[] = [],
 ): ZoomRegion[] {
   if (!Number.isFinite(duration) || duration <= 0) return [];
   const clicks = pointers
@@ -122,7 +134,52 @@ export function autoZoom(
       regions[i].start = boundary;
     }
   }
-  return regions.filter((z) => z.end - z.start >= 0.2);
+  const combined = [
+    ...regions,
+    ...typing
+      .filter(
+        (b) =>
+          [b.start, b.end, b.x, b.y].every(Number.isFinite) &&
+          b.end > b.start &&
+          b.start < duration &&
+          b.end >= 0,
+      )
+      .map((b, i) => ({
+        id: `typing-${i}-${Math.round(b.start * 1000)}`,
+        start: Math.max(0, b.start - 0.55),
+        end: Math.min(duration, b.end + 1.5),
+        x: clamp(b.x),
+        y: clamp(b.y),
+        scale: 1.85,
+      })),
+  ].sort((a, b) => a.start - b.start);
+  const merged: ZoomRegion[] = [];
+  for (const region of combined) {
+    const previous = merged.at(-1);
+    if (
+      previous &&
+      previous.end >= region.start &&
+      Math.hypot(previous.x - region.x, previous.y - region.y) < 0.2
+    ) {
+      // Clicking into a field and typing is one steady camera hold.
+      previous.end = Math.max(previous.end, region.end);
+      if (region.id.startsWith("typing-"))
+        Object.assign(previous, {
+          x: region.x,
+          y: region.y,
+          scale: region.scale,
+        });
+    } else {
+      if (previous && previous.end > region.start) {
+        const boundary =
+          (region.start + Math.min(previous.end, region.end)) / 2;
+        previous.end = boundary;
+        region.start = boundary;
+      }
+      merged.push(region);
+    }
+  }
+  return merged.filter((z) => z.end - z.start >= 0.2);
 }
 
 export function outputDimensions(

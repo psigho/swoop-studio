@@ -1,6 +1,6 @@
 {
   "name": "swoop-studio",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "private": true,
   "description": "A local screen recording studio with expressive cursors and cinematic motion.",
   "main": "electron/main.cjs",
@@ -11,7 +11,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 9347 --strictPort",
     "desktop": "electron .",
-    "test": "tsx --test tests/*.test.ts && node --test electron/main.test.cjs electron/pointer-session.test.cjs electron/dependency-check.test.cjs electron/take-store.test.cjs electron/clean-capture.test.cjs",
+    "test": "tsx --test tests/*.test.ts && node --test electron/main.test.cjs electron/pointer-session.test.cjs electron/dependency-check.test.cjs electron/take-store.test.cjs electron/clean-capture.test.cjs electron/typing-session.test.cjs electron/system-audio.test.cjs",
     "package": "npm run build && node scripts/build-installer.mjs --dir",
     "test:desktop": "node scripts/native-e2e.mjs",
     "installer": "npm run build && node scripts/build-installer.mjs"

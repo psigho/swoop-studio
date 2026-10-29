@@ -30,6 +30,8 @@ for (const source of [
   "electron/clean-capture.cjs",
   "electron/preload.cjs",
   "electron/pointer-session.cjs",
+  "electron/typing-session.cjs",
+  "electron/system-audio.cjs",
   "electron/data-path.cjs",
   "electron/take-store.cjs",
   "electron/dependency-check.cjs",
@@ -44,7 +46,7 @@ const packedManifest = JSON.parse(
 );
 assert.equal(packedManifest.version, manifest.version);
 checks.push(
-  "Packaged app version and eight runtime sources match the reviewed checkout.",
+  "Packaged app version and runtime sources match the reviewed checkout.",
 );
 
 const includedDemo = extractFile(
@@ -84,6 +86,33 @@ assert.match(
 );
 checks.push(
   "Original native cursor-free Windows capture helper, full MIT source/build materials and graphics/API check match the reviewed build.",
+);
+
+const systemRoot = path.join(root, "native", "system");
+const systemManifest = JSON.parse(
+  await fs.readFile(path.join(systemRoot, "manifest.json"), "utf8"),
+);
+for (const receipt of [systemManifest.binary, ...systemManifest.sources]) {
+  const original = await fs.readFile(path.join(systemRoot, receipt.path));
+  assert.equal(
+    createHash("sha256").update(original).digest("hex"),
+    receipt.sha256,
+  );
+  assert.deepEqual(
+    await fs.readFile(path.join(unpacked, "resources", "system", receipt.path)),
+    original,
+  );
+}
+assert.match(
+  execFileSync(
+    path.join(unpacked, "resources", "system", systemManifest.binary.path),
+    ["--check"],
+    { encoding: "utf8", windowsHide: true, timeout: 15000 },
+  ),
+  /"ok":true/,
+);
+checks.push(
+  "Original native Windows audio/focus helper and full MIT source/build materials match the reviewed build.",
 );
 
 for (const entry of entries) {

@@ -1634,6 +1634,7 @@ input[type="range"]::-webkit-slider-thumb {
 .audio-device-error { color: #ffb295; }
 .system-audio-source { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; border-top: 1px solid #3f4c34; padding-top: 14px; font-size: 10px; }
 .system-audio-source span { flex: 1; }
+.system-audio-source label { flex: 1; min-width: 0; display: grid; gap: 6px; }
 .system-audio-source strong, .system-audio-source small { display: block; margin-top: 5px; line-height: 1.5; }
 .system-audio-source small { color: #bdcbb0; }
 .record-options .toggle-row {

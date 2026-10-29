@@ -171,14 +171,68 @@ async function checkDependencies(options) {
       "Windows cursor-free screen capture",
       async () => {
         const executable = /(?:^|[\\/])app\.asar$/.test(applicationRoot)
-          ? path.join(path.dirname(applicationRoot), "capture", "win32-x64", "SwoopCapture.exe")
-          : path.join(applicationRoot, "native", "capture", "win32-x64", "SwoopCapture.exe");
-        if (!exists(executable)) throw new Error("The bundled Windows screen recorder is missing.");
-        const result = await (options.runCapture ?? runFile)(executable, ["--check"], { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 });
-        if (!String(result.stdout ?? result).includes("Windows Graphics Capture and D3D11 ready")) throw new Error("Windows screen recording support could not be confirmed.");
+          ? path.join(
+              path.dirname(applicationRoot),
+              "capture",
+              "win32-x64",
+              "SwoopCapture.exe",
+            )
+          : path.join(
+              applicationRoot,
+              "native",
+              "capture",
+              "win32-x64",
+              "SwoopCapture.exe",
+            );
+        if (!exists(executable))
+          throw new Error("The bundled Windows screen recorder is missing.");
+        const result = await (options.runCapture ?? runFile)(
+          executable,
+          ["--check"],
+          { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 },
+        );
+        if (
+          !String(result.stdout ?? result).includes(
+            "Windows Graphics Capture and D3D11 ready",
+          )
+        )
+          throw new Error(
+            "Windows screen recording support could not be confirmed.",
+          );
         return "Windows capture API and graphics device checked; no screen was recorded";
       },
       "Restart Setup to restore the recorder. Windows 10 version 2004 or newer and working graphics drivers are required.",
+    );
+    await check(
+      "system",
+      "Windows output selection and typing focus helper",
+      async () => {
+        const executable = /(?:^|[\\/])app\.asar$/.test(applicationRoot)
+          ? path.join(
+              path.dirname(applicationRoot),
+              "system",
+              "win32-x64",
+              "SwoopSystem.exe",
+            )
+          : path.join(
+              applicationRoot,
+              "native",
+              "system",
+              "win32-x64",
+              "SwoopSystem.exe",
+            );
+        if (!exists(executable))
+          throw new Error("The bundled Windows audio/focus helper is missing.");
+        const result = await (options.runSystem ?? runFile)(
+          executable,
+          ["--check"],
+          { windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 },
+        );
+        if (JSON.parse(String(result.stdout ?? result)).ok !== true)
+          throw new Error("Windows audio services could not be confirmed.");
+        return "Windows audio device service loaded; no sound or typing was recorded";
+      },
+      "Restart Setup to restore the helper. Check that the Windows Audio service is running.",
     );
     await check(
       "encoder",

@@ -1,6 +1,7 @@
 import {
   DEFAULT_SETTINGS,
   type PointerSample,
+  type TypingBurst,
   type StudioSettings,
   type ZoomRegion,
 } from "./studio";
@@ -17,6 +18,7 @@ export type SwoopProject = {
   settings: StudioSettings;
   zooms: ZoomRegion[];
   pointers: ProjectPointer[];
+  typing?: TypingBurst[];
   trimStart: number;
   trimEnd: number;
   mediaBase64?: string;
@@ -189,6 +191,15 @@ function videoBase64(value: unknown): string {
   return value;
 }
 
+/** A codec list can contain commas before the actual base64 payload delimiter. */
+export function embeddedBase64(dataUrl: string): string {
+  const marker = ";base64,";
+  const index = dataUrl.indexOf(marker);
+  if (!dataUrl.startsWith("data:") || index < 0)
+    fail("Could not read the embedded video.");
+  return videoBase64(dataUrl.slice(index + marker.length));
+}
+
 /** Validate local project data before it reaches controls, canvas, or a decoder. */
 export function parseProject(data: unknown): SwoopProject {
   const input = record(data, "Swoop project");
@@ -308,6 +319,9 @@ export function parseProject(data: unknown): SwoopProject {
     settings: safeSettings,
     zooms,
     pointers,
+    ...(input.typing === undefined
+      ? {}
+      : { typing: parseTyping(input.typing, duration) }),
     trimStart,
     trimEnd,
   };
@@ -326,4 +340,24 @@ export function parseProject(data: unknown): SwoopProject {
     } else project.mediaType = "video/webm";
   }
   return project;
+}
+
+/** Backward compatible: old projects have no typing metadata. */
+function parseTyping(value: unknown, duration: number): TypingBurst[] {
+  if (!Array.isArray(value) || value.length > 10000)
+    fail("Too many typing regions.");
+  return value
+    .map((item, index) => {
+      const b = record(item, `Typing region ${index + 1}`);
+      const start = number(b.start, "Typing start", 0, duration),
+        end = number(b.end, "Typing end", 0, duration);
+      if (end <= start) fail("Typing must end after it starts.");
+      return {
+        start,
+        end,
+        x: number(b.x, "Typing horizontal position", 0, 1),
+        y: number(b.y, "Typing vertical position", 0, 1),
+      };
+    })
+    .sort((a, b) => a.start - b.start);
 }
